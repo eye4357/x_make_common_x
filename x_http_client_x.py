@@ -67,7 +67,7 @@ class HttpClient:
             raise HttpError(message)
         json_payload: object | None
         try:
-            json_payload = cast(object, response.json())
+            json_payload = cast("object", response.json())
         except ValueError:
             json_payload = None
         return HttpResponse(
