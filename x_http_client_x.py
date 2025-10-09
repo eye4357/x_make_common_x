@@ -2,10 +2,43 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
-from typing import Iterable, Mapping, MutableMapping, cast  # noqa: UP035
+from typing import (
+    Any,
+    Protocol,
+    cast,
+)
 
 import httpx
+
+
+class _HttpxResponse(Protocol):
+    status_code: int
+    text: str
+
+    def json(self) -> object: ...
+
+
+class _HttpxClient(Protocol):
+    def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        headers: Mapping[str, str] | None = ...,
+        json: object | None = ...,
+    ) -> _HttpxResponse: ...
+
+    def close(self) -> None: ...
+
+
+_HTTPX_MODULE: Any = httpx
+
+try:
+    _HTTPErrorType = cast("type[Exception]", _HTTPX_MODULE.HTTPError)
+except AttributeError:  # pragma: no cover - httpx should provide HTTPError
+    _HTTPErrorType = RuntimeError
 
 
 @dataclass(slots=True)
@@ -31,12 +64,18 @@ class HttpClient:
         headers: Mapping[str, str] | Iterable[tuple[str, str]] | None = None,
         follow_redirects: bool = True,
     ) -> None:
-        self._client = httpx.Client(
-            timeout=timeout, follow_redirects=follow_redirects
+        try:
+            client_factory = cast("Callable[..., _HttpxClient]", _HTTPX_MODULE.Client)
+        except AttributeError as exc:  # pragma: no cover - defensive
+            message = "httpx.Client is unavailable"
+            raise RuntimeError(message) from exc
+        self._client = client_factory(
+            timeout=timeout,
+            follow_redirects=follow_redirects,
         )
         self._default_headers: MutableMapping[str, str] = {}
         if headers:
-            self._default_headers.update(dict(headers))
+            self._default_headers.update(_to_header_mapping(headers))
 
     def close(self) -> None:
         self._client.close()
@@ -51,7 +90,7 @@ class HttpClient:
     ) -> HttpResponse:
         combined_headers = dict(self._default_headers)
         if headers:
-            combined_headers.update(dict(headers))
+            combined_headers.update(_to_header_mapping(headers))
         try:
             response = self._client.request(
                 method.upper(),
@@ -59,7 +98,7 @@ class HttpClient:
                 headers=combined_headers,
                 json=json,
             )
-        except httpx.HTTPError as exc:
+        except _HTTPErrorType as exc:
             message = f"HTTP error calling {url}: {exc}"
             raise HttpError(message) from exc
         status_code = response.status_code
@@ -69,11 +108,11 @@ class HttpClient:
             raise HttpError(message)
         json_payload: object | None
         try:
-            json_payload = cast("object", response.json())
+            json_payload = response.json()
         except ValueError:
             json_payload = None
         return HttpResponse(
-            status_code=response.status_code,
+            status_code=status_code,
             text=response.text,
             json=json_payload,
         )
@@ -93,6 +132,16 @@ class HttpClient:
         headers: Mapping[str, str] | Iterable[tuple[str, str]] | None = None,
     ) -> HttpResponse:
         return self.request("GET", url, headers=headers)
+
+
+def _to_header_mapping(
+    headers: Mapping[str, str] | Iterable[tuple[str, str]],
+) -> Mapping[str, str]:
+    if isinstance(headers, Mapping):
+        typed_mapping = cast("Mapping[str, str]", headers)
+        return {str(key): str(value) for key, value in typed_mapping.items()}
+    pairs: Sequence[tuple[str, str]] = tuple(headers)
+    return {str(key): str(value) for key, value in pairs}
 
 
 __all__ = ["HttpClient", "HttpError", "HttpResponse"]
