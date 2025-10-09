@@ -31,7 +31,9 @@ class HttpClient:
         headers: Mapping[str, str] | Iterable[tuple[str, str]] | None = None,
         follow_redirects: bool = True,
     ) -> None:
-        self._client = httpx.Client(timeout=timeout, follow_redirects=follow_redirects)
+        self._client = httpx.Client(
+            timeout=timeout, follow_redirects=follow_redirects
+        )
         self._default_headers: MutableMapping[str, str] = {}
         if headers:
             self._default_headers.update(dict(headers))
@@ -57,7 +59,7 @@ class HttpClient:
                 headers=combined_headers,
                 json=json,
             )
-        except httpx.HTTPError as exc:  # pragma: no cover - network error path
+        except httpx.HTTPError as exc:
             message = f"HTTP error calling {url}: {exc}"
             raise HttpError(message) from exc
         status_code = response.status_code
