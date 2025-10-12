@@ -2,11 +2,78 @@
 
 from __future__ import annotations
 
+import importlib
+import importlib.machinery
+import importlib.util
+import sys
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
-from typing import Protocol, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, Protocol, cast
 
-import httpx
+if TYPE_CHECKING:
+    from types import ModuleType
+
+
+def _load_httpx_module() -> ModuleType:
+    module: ModuleType = importlib.import_module("httpx")
+    module_file = cast("str | None", getattr(module, "__file__", None))
+    if not module_file:
+        return module
+    try:
+        module_path = Path(module_file).resolve()
+    except (OSError, RuntimeError, ValueError):
+        return module
+    if "x_legatus_acta_schedae_x" not in str(module_path):
+        return module
+    replacement = _import_external_httpx(module_path)
+    if replacement is not None:
+        sys.modules["httpx"] = replacement
+        return replacement
+    return module
+
+
+def _import_external_httpx(stub_path: Path) -> ModuleType | None:
+    stub_path = stub_path.resolve()
+    unique_entries = cast("dict[str, None]", dict.fromkeys(sys.path, None))
+    for entry in unique_entries:
+        if not entry:
+            continue
+        try:
+            resolved = Path(entry).resolve()
+        except (OSError, RuntimeError, ValueError):
+            continue
+        try:
+            if stub_path.is_relative_to(resolved):
+                continue
+        except AttributeError:
+            # Python < 3.9 compatibility: fall back to manual check; retained for
+            # safety even though the runtime currently targets 3.13.
+            try:
+                stub_path.relative_to(resolved)
+            except ValueError:
+                pass
+            else:
+                continue
+        spec = importlib.machinery.PathFinder.find_spec(
+            "httpx",
+            [str(resolved)],
+        )
+        if spec is None or spec.loader is None:
+            continue
+        module: ModuleType = importlib.util.module_from_spec(spec)
+        loader = spec.loader
+        sys.modules[spec.name] = module
+        try:
+            loader.exec_module(module)
+        except (ImportError, OSError, RuntimeError, SyntaxError, ValueError):
+            sys.modules.pop(spec.name, None)
+            continue
+        return module
+    return None
+
+
+httpx = _load_httpx_module()
 
 
 class _HttpxResponse(Protocol):
@@ -40,10 +107,7 @@ class _HttpxClientFactory(Protocol):
     ) -> _HttpxClient: ...
 
 
-_HTTPErrorType = cast(
-    "type[Exception]",
-    getattr(httpx, "HTTPError", RuntimeError),
-)
+_HTTPErrorType = cast("type[Exception]", getattr(httpx, "HTTPError", RuntimeError))
 
 
 @dataclass(slots=True)
