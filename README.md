@@ -1,9 +1,9 @@
-# x_make_common_x — Lab Notes from Walter White
+# x_make_common_x — Control Room Lab Notes
 
 > "When every cook uses the same lab gear, quality stops fluctuating. This repository delivers that gear."
 
 ## Manifesto
-x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This is the solvent that dissolves duplication and keeps the whole Road to 0.20.0 campaign aligned.
+x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This is the solvent that dissolves duplication and keeps the whole Road to 0.20.1 campaign aligned.
 
 ## Ingredients
 - Python 3.11+
@@ -28,8 +28,8 @@ x_make_common_x houses the shared utilities—logging, subprocess control, HTTP 
 
 ## Distribution Chain
 - [Changelog](./CHANGELOG.md)
-- [Road to 0.20.0 Control Room](../x_0_make_all_x/Change%20Control/0.20.0/index.md)
-- [Road to 0.20.0 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.0/Road%20to%200.20.0%20Engineering%20Proposal%20-%20Walter%20White.md)
+- [Road to 0.20.1 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.1/Road%20to%200.20.1%20Engineering%20Proposal.md)
+- [Road to 0.20.1 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.1/Road%20to%200.20.1%20Engineering%20Proposal.md)
 
 ## Cross-Linked Intelligence
 - [x_0_make_all_x](../x_0_make_all_x/README.md) — orchestrator expects these helpers on every run
