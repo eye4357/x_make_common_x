@@ -3,7 +3,10 @@
 > "When every cook uses the same lab gear, quality stops fluctuating. This repository delivers that gear."
 
 ## Manifesto
-x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This is the solvent that dissolves duplication and keeps the whole Road to 0.20.1 campaign aligned.
+x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This is the solvent that dissolves duplication and keeps the whole Road to 0.20.2 campaign aligned.
+
+## 0.20.2 Command Sequence
+Version 0.20.2 documents the exact behaviors I just hardened in telemetry, subprocess, and HTTP helpers. Follow this brief and every downstream repo inherits the same discipline straight from the Road to 0.20.2 dossier.
 
 ## Ingredients
 - Python 3.11+
@@ -28,8 +31,8 @@ x_make_common_x houses the shared utilities—logging, subprocess control, HTTP 
 
 ## Distribution Chain
 - [Changelog](./CHANGELOG.md)
-- [Road to 0.20.1 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.1/Road%20to%200.20.1%20Engineering%20Proposal.md)
-- [Road to 0.20.1 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.1/Road%20to%200.20.1%20Engineering%20Proposal.md)
+- [Road to 0.20.2 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.2/Road%20to%200.20.2%20Engineering%20Proposal.md)
+- [Road to 0.20.2 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.2/Road%20to%200.20.2%20Engineering%20Proposal.md)
 
 ## Cross-Linked Intelligence
 - [x_0_make_all_x](../x_0_make_all_x/README.md) — orchestrator expects these helpers on every run

@@ -4,23 +4,28 @@ from __future__ import annotations
 
 import json
 import os
+import pathlib
 import threading
-from collections.abc import Callable, Mapping, MutableMapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import (
-    Final,
-    Protocol,
-    TextIO,
-    TypedDict,
-    cast,
-)
+from typing import TYPE_CHECKING, Final, Protocol, TextIO, TypedDict, cast
 
-from jsonschema import (  # type: ignore[import-untyped]
-    Draft202012Validator,
-    ValidationError,
-)
+from jsonschema import Draft202012Validator  # type: ignore[import-untyped]
+
+if TYPE_CHECKING:
+
+    class ValidationError(Exception):
+        path: Sequence[object]
+        message: str
+
+else:
+    from jsonschema import ValidationError  # type: ignore[import-untyped]
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping, Sequence
+    from pathlib import Path
+else:
+    Path = pathlib.Path
 
 SCHEMA_VERSION: Final[str] = "0.20.2"
 
@@ -75,6 +80,7 @@ TELEMETRY_SCHEMA: Final[dict[str, object]] = {
             "type": "string",
             "enum": [
                 "orchestrator",
+                "legatus",
                 "clones",
                 "visitor",
                 "pip_updates",
@@ -182,7 +188,7 @@ def ensure_timestamp(timestamp: datetime | str | None) -> str:
     return current.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
-def make_event(
+def make_event(  # noqa: PLR0913
     *,
     source: str,
     phase: str,
@@ -196,7 +202,7 @@ def make_event(
 ) -> TelemetryEvent:
     """Create a validated telemetry event from primitive data."""
 
-    payload: MutableMapping[str, object] = {
+    payload: dict[str, object] = {
         "version": SCHEMA_VERSION,
         "timestamp": ensure_timestamp(timestamp),
         "source": source,
@@ -206,8 +212,9 @@ def make_event(
         "status": status,
         "attempt": attempt,
         "duration_ms": duration_ms,
-        "details": dict(details or {}),
     }
+    detail_map: dict[str, JSONValue] = {} if details is None else dict(details)
+    payload["details"] = detail_map
     return coerce_event(payload)
 
 
@@ -221,10 +228,11 @@ def dumps(event: TelemetryEvent, *, indent: int | None = None) -> str:
 def loads(payload: str) -> TelemetryEvent:
     """Deserialize a JSON payload into a validated telemetry event."""
 
-    data = json.loads(payload)
-    if not isinstance(data, dict):
-        raise TelemetryValidationError("Telemetry payload must decode to an object")
-    typed = cast("dict[str, JSONValue]", data)
+    raw: object = json.loads(payload)
+    if not isinstance(raw, dict):
+        message = "Telemetry payload must decode to an object"
+        raise TelemetryValidationError(message)
+    typed = cast("dict[str, JSONValue]", raw)
     return coerce_event(typed)
 
 
@@ -275,7 +283,7 @@ def configure_event_sink(sink: TextIO | None, *, echo: bool | None = None) -> No
     """
 
     with _SINK_LOCK:
-        global _default_sink, _echo_stdout
+        global _default_sink, _echo_stdout  # noqa: PLW0603
         _default_sink = sink
         if echo is not None:
             _echo_stdout = echo
@@ -303,7 +311,7 @@ def emit_event(event: TelemetryEvent, *, sink: TextIO | None = None) -> None:
         try:
             payload = cast("TelemetryEvent", dict(validated))
             listener(payload)
-        except Exception:
+        except Exception:  # noqa: BLE001,S112
             continue
     line = dumps(validated)
     wrote_to_sink = False
@@ -313,16 +321,13 @@ def emit_event(event: TelemetryEvent, *, sink: TextIO | None = None) -> None:
             target_sink.write("\n")
             target_sink.flush()
             wrote_to_sink = True
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Fall back to stdout if sink write fails; consumer-side logging
             # can surface the issue without breaking telemetry propagation.
             wrote_to_sink = False
     should_print = sink is not None
     if sink is None:
-        if target_sink is None:
-            should_print = True
-        else:
-            should_print = echo_stdout
+        should_print = True if target_sink is None else echo_stdout
     if should_print and _stdout_enabled():
         print(line, flush=True)
     elif not wrote_to_sink and target_sink is not None and _stdout_enabled():

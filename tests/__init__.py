@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import sys
-import types
+from types import ModuleType
 
 if "httpx" not in sys.modules:
-    fake_httpx = types.ModuleType("httpx")
+    fake_httpx = ModuleType("httpx")
 
     class _DummyClient:
-        def request(self, *args: object, **kwargs: object) -> object:
-            raise RuntimeError("httpx client stub should not be used in tests")
+        def request(self, *_args: object, **_kwargs: object) -> object:
+            message = "httpx client stub should not be used in tests"
+            raise RuntimeError(message)
 
         def close(self) -> None:
             return None
@@ -16,6 +17,6 @@ if "httpx" not in sys.modules:
     def _httpx_client(**_: object) -> _DummyClient:
         return _DummyClient()
 
-    fake_httpx.HTTPError = RuntimeError
-    fake_httpx.Client = _httpx_client
+    fake_httpx.HTTPError = RuntimeError  # type: ignore[attr-defined]
+    fake_httpx.Client = _httpx_client  # type: ignore[attr-defined]
     sys.modules["httpx"] = fake_httpx

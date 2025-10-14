@@ -1,74 +1,44 @@
 from __future__ import annotations
 
-import importlib.util
+# ruff: noqa: S101
 import sys
-import types
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
-from _pytest.capture import CaptureFixture
-from _pytest.monkeypatch import MonkeyPatch
-
-if "httpx" not in sys.modules:
-    fake_httpx = types.ModuleType("httpx")
-
-    class _DummyClient:  # pragma: no cover - sentinel used only for imports
-        def request(self, *args: object, **kwargs: object) -> object:
-            raise RuntimeError("httpx client stub should not be used in tests")
-
-        def close(self) -> None:
-            return None
-
-    def _httpx_client(**_: object) -> _DummyClient:
-        return _DummyClient()
-
-    fake_httpx.HTTPError = RuntimeError
-    fake_httpx.Client = _httpx_client
-    sys.modules["httpx"] = fake_httpx
-
-sys.modules.pop("x_make_common_x.telemetry", None)
-sys.modules.pop("x_make_common_x", None)
-
-
-def _load_telemetry_module() -> types.ModuleType:
-    package_name = "x_make_common_x"
-    module_name = f"{package_name}.telemetry"
-    package_path = Path(__file__).resolve().parent.parent
-    if package_name not in sys.modules:
-        package_module = types.ModuleType(package_name)
-        package_module.__path__ = [str(package_path)]  # type: ignore[attr-defined]
-        sys.modules[package_name] = package_module
-    spec = importlib.util.spec_from_file_location(
-        module_name, package_path / "telemetry.py"
-    )
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Unable to load telemetry module for testing")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-telemetry = _load_telemetry_module()
 
 if TYPE_CHECKING:
-    from x_make_common_x.telemetry import TelemetryEvent as TelemetryEventType
-else:
-    TelemetryEventType = telemetry.TelemetryEvent
+    from collections.abc import Sequence
 
-SCHEMA_VERSION = telemetry.SCHEMA_VERSION
-TELEMETRY_SCHEMA = telemetry.TELEMETRY_SCHEMA
-TelemetryValidationError = telemetry.TelemetryValidationError
-coerce_event = telemetry.coerce_event
-configure_event_sink = telemetry.configure_event_sink
-dumps = telemetry.dumps
-emit_event = telemetry.emit_event
-ensure_timestamp = telemetry.ensure_timestamp
-loads = telemetry.loads
-make_event = telemetry.make_event
-validate_event = telemetry.validate_event
+    from _pytest.capture import CaptureFixture
+    from _pytest.monkeypatch import MonkeyPatch
+else:  # pragma: no cover - runtime stubs for type names
+    CaptureFixture = object
+    MonkeyPatch = object
+
+WORKSPACE_ROOT = Path(__file__).resolve().parent.parent
+root_str = str(WORKSPACE_ROOT)
+if root_str not in sys.path:
+    sys.path.insert(0, root_str)
+
+from x_make_common_x.telemetry import (  # noqa: E402,I001  # pylint: disable=wrong-import-position
+    SCHEMA_VERSION,
+    TELEMETRY_SCHEMA,
+    TelemetryEvent,
+    TelemetryValidationError,
+    coerce_event,
+    configure_event_sink,
+    dumps,
+    emit_event,
+    ensure_timestamp,
+    loads,
+    make_event,
+    validate_event,
+)
+
+
+TelemetryEventType = TelemetryEvent
 
 
 def _sample_event(**overrides: object) -> TelemetryEventType:
@@ -100,7 +70,7 @@ def test_validate_event_accepts_sample_payload() -> None:
 
 
 @pytest.mark.parametrize(
-    "field, value",
+    ("field", "value"),
     [
         ("source", "unknown"),
         ("status", "bogus"),
@@ -122,10 +92,10 @@ def test_round_trip_preserves_payload() -> None:
 
 
 def test_ensure_timestamp_normalises_naive_datetime() -> None:
-    naive = datetime(2025, 10, 13, 10, 0)
+    naive = datetime(2025, 10, 13, 10, 0)  # noqa: DTZ001
     iso = ensure_timestamp(naive)
     assert iso.endswith("Z")
-    parsed = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+    parsed = datetime.fromisoformat(f"{iso.removesuffix('Z')}+00:00")
     assert parsed.tzinfo == UTC
 
 
@@ -141,8 +111,9 @@ def test_coerce_event_accepts_plain_mapping() -> None:
 
 
 def test_schema_definition_matches_required_fields() -> None:
-    required = TELEMETRY_SCHEMA["required"]
-    assert sorted(required) == sorted(telemetry.TelemetryEvent.__annotations__.keys())
+    required = cast("Sequence[str]", TELEMETRY_SCHEMA["required"])
+    fields = tuple(TelemetryEvent.__annotations__.keys())
+    assert sorted(required) == sorted(fields)
 
 
 def test_configured_sink_receives_events(

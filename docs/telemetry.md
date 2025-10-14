@@ -52,7 +52,7 @@ Each event is a JSON object (or equivalent Python dict) with the following field
   "details": {
     "message": "mypy --strict exit 1",
     "error_kind": "type",
-    "artifact_path": "out/reports/visitor_failures_20251013_182211.md"
+  "artifact_path": "out/reports/visitor_failures_20251013_182211.json"
   }
 }
 ```
@@ -71,7 +71,7 @@ Each event is a JSON object (or equivalent Python dict) with the following field
   "details": {
     "message": "Automatic rerun triggered after transient failure",
     "retry_reason": "lint-transient",
-    "artifact_path": "out/reports/visitor_failures_20251013_182455.md"
+  "artifact_path": "out/reports/visitor_failures_20251013_182455.json"
   }
 }
 ```
