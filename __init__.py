@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+from .exporters import (  # re-export shared exporters
+    CommandRunner,
+    ExportResult,
+    export_graphviz_to_svg,
+    export_markdown_to_pdf,
+    export_mermaid_to_svg,
+)
 from .json_board import (
     BoardState as JsonBoardState,
 )
@@ -53,6 +60,8 @@ __all__ = [
     "TELEMETRY_SCHEMA",
     "TIMESTAMP_FILENAME_FORMAT",
     "CommandError",
+    "CommandRunner",
+    "ExportResult",
     "HttpClient",
     "HttpError",
     "HttpResponse",
@@ -70,6 +79,9 @@ __all__ = [
     "ensure_reports_dir",
     "ensure_timestamp",
     "ensure_workspace_on_syspath",
+    "export_graphviz_to_svg",
+    "export_markdown_to_pdf",
+    "export_mermaid_to_svg",
     "get_env_bool",
     "get_env_str",
     "get_logger",
