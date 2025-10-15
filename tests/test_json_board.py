@@ -1,11 +1,16 @@
+# ruff: noqa: S101
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from x_make_common_x.json_board import BoardState, CardRecord, load_board, save_board
+
+if TYPE_CHECKING:  # pragma: no cover - type hints only
+    from pathlib import Path
 
 
 def test_board_add_update_remove(tmp_path: Path) -> None:
@@ -39,5 +44,5 @@ def test_board_add_update_remove(tmp_path: Path) -> None:
 def test_load_board_rejects_invalid_json(tmp_path: Path) -> None:
     path = tmp_path / "broken.json"
     path.write_text("{}", encoding="utf-8")
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="must be a list"):
         load_board(path)

@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import builtins
 import contextlib
 import json
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable, Mapping, cast
+from typing import cast
 
-__all__ = ["CardRecord", "BoardState", "load_board", "save_board", "dump_board"]
+__all__ = ["BoardState", "CardRecord", "dump_board", "load_board", "save_board"]
 
 
 @dataclass(slots=True)
@@ -34,7 +36,7 @@ class CardRecord:
         }
 
     @classmethod
-    def from_json(cls, payload: Mapping[str, object]) -> "CardRecord":
+    def from_json(cls, payload: Mapping[str, object]) -> CardRecord:
         card_id_obj = payload.get("id")
         title_obj = payload.get("title")
         if not isinstance(card_id_obj, str) or not card_id_obj.strip():
@@ -104,23 +106,24 @@ class BoardState:
             msg = f"card not found: {card_id}"
             raise ValueError(msg) from exc
 
-    def list(self) -> list[CardRecord]:
+    def list(self) -> builtins.list[CardRecord]:
         return list(self.cards.values())
 
-    def to_json(self) -> list[dict[str, object]]:
+    def to_json(self) -> builtins.list[dict[str, object]]:
         ordered = sorted(self.cards.values(), key=lambda card: card.updated_at)
         return [card.to_json() for card in ordered]
 
 
-def load_board(path: Path) -> BoardState:
-    if not path.exists():
+def load_board(path: Path | str) -> BoardState:
+    path_obj = Path(path)
+    if not path_obj.exists():
         return BoardState()
-    payload_obj = json.loads(path.read_text(encoding="utf-8"))
+    payload_obj = json.loads(path_obj.read_text(encoding="utf-8"))
     if not isinstance(payload_obj, list):
         msg = "Board JSON must be a list of card objects"
-        raise ValueError(msg)
+        raise TypeError(msg)
     state = BoardState()
-    payload_list = cast("list[object]", payload_obj)
+    payload_list = payload_obj
     for entry in payload_list:
         if isinstance(entry, Mapping):
             mapping_entry = cast("Mapping[str, object]", entry)
@@ -133,9 +136,9 @@ def dump_board(state: BoardState) -> list[dict[str, object]]:
     return state.to_json()
 
 
-def save_board(path: Path, state: BoardState) -> None:
+def save_board(path: Path | str, state: BoardState) -> None:
     serialized = json.dumps(dump_board(state), indent=2, sort_keys=False)
-    path.write_text(serialized, encoding="utf-8")
+    Path(path).write_text(serialized, encoding="utf-8")
 
 
 def board_from_records(records: Iterable[Mapping[str, object]]) -> BoardState:
