@@ -18,6 +18,13 @@ from .json_board import (
 from .json_board import (
     save_board as save_json_board,
 )
+from .run_reports import (
+    REPORTS_DIR_NAME,
+    TIMESTAMP_FILENAME_FORMAT,
+    ensure_reports_dir,
+    isoformat_timestamp,
+    write_run_report,
+)
 from .telemetry import (
     SCHEMA_VERSION,
     TELEMETRY_SCHEMA,
@@ -41,8 +48,10 @@ from .x_logging_utils_x import get_logger, log_debug, log_error, log_info
 from .x_subprocess_utils_x import CommandError, run_command
 
 __all__ = [
+    "REPORTS_DIR_NAME",
     "SCHEMA_VERSION",
     "TELEMETRY_SCHEMA",
+    "TIMESTAMP_FILENAME_FORMAT",
     "CommandError",
     "HttpClient",
     "HttpError",
@@ -58,11 +67,13 @@ __all__ = [
     "dump_to_file",
     "dumps",
     "emit_event",
+    "ensure_reports_dir",
     "ensure_timestamp",
     "ensure_workspace_on_syspath",
     "get_env_bool",
     "get_env_str",
     "get_logger",
+    "isoformat_timestamp",
     "load_json_board",
     "loads",
     "log_debug",
@@ -74,4 +85,5 @@ __all__ = [
     "save_json_board",
     "unregister_listener",
     "validate_event",
+    "write_run_report",
 ]
