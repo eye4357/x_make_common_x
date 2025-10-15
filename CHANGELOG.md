@@ -2,6 +2,14 @@
 
 All notable changes to x_make_common_x are logged here. We observe [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) principles and Semantic Versioning even when the heat starts to rise.
 
+## [0.20.3] - 2025-10-14
+### Added
+- JSON-backed `JsonBoardState` and `JsonCardRecord` so every workflow can track tasks without touching `x_legatus_tabula_opus`.
+- `board_from_records`, `load_json_board`, and `save_json_board` exports wired into the package surface for data-first orchestration.
+
+### Changed
+- README and operating guides rewritten for the Road to 0.20.3 release blueprint.
+
 ## [0.20.2] - 2025-10-14
 ### Changed
 - Hardened documentation for telemetry, subprocess, and HTTP helpers to the Road to 0.20.2 control-room brief so every downstream repo marches in lockstep.

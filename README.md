@@ -1,12 +1,12 @@
 # x_make_common_x — Control Room Lab Notes
 
-> "When every cook uses the same lab gear, quality stops fluctuating. This repository delivers that gear."
+> "Consistency is chemistry. Measure, refine, and the yield stays pure."
 
 ## Manifesto
-x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This is the solvent that dissolves duplication and keeps the whole Road to 0.20.2 campaign aligned.
+x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This solvent dissolves duplication and keeps the Road to 0.20.3 campaign aligned.
 
-## 0.20.2 Command Sequence
-Version 0.20.2 documents the exact behaviors I just hardened in telemetry, subprocess, and HTTP helpers. Follow this brief and every downstream repo inherits the same discipline straight from the Road to 0.20.2 dossier.
+## 0.20.3 Command Sequence
+Version 0.20.3 distills a JSON-native board engine straight into the common toolkit. The new `JsonBoardState` and `JsonCardRecord` APIs replace any lingering temptation to lean on `x_legatus_tabula_opus`. Now the orchestration stack snapshots tasks with clean, schema-driven payloads and zero foreign dependencies.
 
 ## Ingredients
 - Python 3.11+
@@ -29,10 +29,13 @@ Version 0.20.2 documents the exact behaviors I just hardened in telemetry, subpr
 | Static contract scan | `python -m pyright`
 | Functional verification | `pytest`
 
+## JSON Board Primer
+The new board helpers let any service capture task flow as structured JSON. Load a ledger with `load_json_board(Path("board.json"))`, mutate through `JsonBoardState.add()` or `.update()`, then `save_json_board` to commit the batch. No binaries, no surprises—just data you can audit, replicate, and ship anywhere in the pipeline.
+
 ## Distribution Chain
 - [Changelog](./CHANGELOG.md)
-- [Road to 0.20.2 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.2/Road%20to%200.20.2%20Engineering%20Proposal.md)
-- [Road to 0.20.2 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.2/Road%20to%200.20.2%20Engineering%20Proposal.md)
+- [Road to 0.20.3 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
+- [Road to 0.20.3 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
 
 ## Cross-Linked Intelligence
 - [x_0_make_all_x](../x_0_make_all_x/README.md) — orchestrator expects these helpers on every run

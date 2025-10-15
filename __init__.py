@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from .json_board import (
+    BoardState as JsonBoardState,
+    CardRecord as JsonCardRecord,
+    board_from_records,
+    dump_board,
+    load_board as load_json_board,
+    save_board as save_json_board,
+)
 from .telemetry import (
     SCHEMA_VERSION,
     TELEMETRY_SCHEMA,
@@ -25,8 +33,14 @@ from .x_logging_utils_x import get_logger, log_debug, log_error, log_info
 from .x_subprocess_utils_x import CommandError, run_command
 
 __all__ = [
+    "JsonBoardState",
+    "JsonCardRecord",
     "SCHEMA_VERSION",
     "TELEMETRY_SCHEMA",
+    "board_from_records",
+    "dump_board",
+    "load_json_board",
+    "save_json_board",
     "CommandError",
     "HttpClient",
     "HttpError",
