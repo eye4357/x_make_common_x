@@ -3,10 +3,10 @@
 > "Consistency is chemistry. Measure, refine, and the yield stays pure."
 
 ## Manifesto
-x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This solvent dissolves duplication and keeps the Road to 0.20.3 campaign aligned.
+x_make_common_x houses the shared utilities—logging, subprocess control, HTTP clients, environment helpers—that every other repo in the operation relies on. This solvent dissolves duplication and keeps the Road to 0.20.4 campaign aligned.
 
-## 0.20.3 Command Sequence
-Version 0.20.3 distills a JSON-native board engine straight into the common toolkit. The new `JsonBoardState` and `JsonCardRecord` APIs replace any lingering temptation to lean on `x_legatus_tabula_opus`. Now the orchestration stack snapshots tasks with clean, schema-driven payloads and zero foreign dependencies.
+## 0.20.4 Command Sequence
+Version 0.20.4 loads the exporter arsenal into this toolkit. `export_markdown_to_pdf`, `export_graphviz_to_svg`, and `export_mermaid_to_svg` now drive every documentation rig through a single `ExportResult` contract, resolving binaries once, logging stdout/stderr, and degrading cleanly when wkhtmltopdf, Graphviz, or mermaid-cli are missing. The Kanban evidence trail finally holds deterministic paths for every PDF and SVG we emit.
 
 ## Ingredients
 - Python 3.11+
@@ -34,7 +34,7 @@ The new board helpers let any service capture task flow as structured JSON. Load
 
 ## Distribution Chain
 - [Changelog](./CHANGELOG.md)
-- [Road to 0.20.3 Control Room Ledger](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
+- [Road to 0.20.4 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.4/Road%20to%200.20.4%20Engineering%20Proposal.md)
 - [Road to 0.20.3 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
 
 ## Cross-Linked Intelligence

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, MutableMapping
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, MutableMapping
 
 __all__ = [
     "REPORTS_DIR_NAME",
@@ -42,15 +44,17 @@ def isoformat_timestamp(moment: datetime | None = None) -> str:
     return current.isoformat().replace("+00:00", "Z")
 
 
-def _ensure_mapping(payload: Mapping[str, Any] | MutableMapping[str, Any]) -> dict[str, Any]:
+def _ensure_mapping(
+    payload: Mapping[str, object] | MutableMapping[str, object],
+) -> dict[str, object]:
     if isinstance(payload, dict):
         return dict(payload)
     return {str(key): value for key, value in payload.items()}
 
 
-def write_run_report(
+def write_run_report(  # noqa: PLR0913 - explicit keyword options aid callsites
     tool_slug: str,
-    payload: Mapping[str, Any] | MutableMapping[str, Any],
+    payload: Mapping[str, object] | MutableMapping[str, object],
     *,
     base_dir: Path | str | None = None,
     filename: str | None = None,

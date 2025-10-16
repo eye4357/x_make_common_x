@@ -10,22 +10,24 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Final, Protocol, TextIO, TypedDict, cast
 
-from jsonschema import Draft202012Validator
-
 if TYPE_CHECKING:
-
-    class ValidationError(Exception):
-        path: Sequence[object]
-        message: str
-
-else:
-    from jsonschema import ValidationError  # type: ignore[import-untyped]
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Iterable, Mapping
     from pathlib import Path
+
+    from jsonschema import (  # type: ignore[import-untyped]
+        Draft202012Validator as _DraftValidatorType,
+    )
+    from jsonschema import (
+        ValidationError as _ValidationErrorType,
+    )
 else:
     Path = pathlib.Path
+    from jsonschema import (  # type: ignore[import-untyped]
+        Draft202012Validator as _DraftValidatorType,
+    )
+    from jsonschema import (
+        ValidationError as _ValidationErrorType,
+    )
 
 SCHEMA_VERSION: Final[str] = "0.20.2"
 
@@ -130,7 +132,20 @@ class _JsonSchemaValidator(Protocol):
     def validate(self, instance: Mapping[str, object]) -> None: ...
 
 
-_VALIDATOR = cast("_JsonSchemaValidator", Draft202012Validator(TELEMETRY_SCHEMA))
+class _JsonSchemaValidatorFactory(Protocol):
+    def __call__(self, schema: Mapping[str, object]) -> _JsonSchemaValidator: ...
+
+
+class _ValidationError(Protocol):
+    path: Iterable[object]
+    message: str
+
+
+Draft202012Validator = cast("_JsonSchemaValidatorFactory", _DraftValidatorType)
+ValidationError = cast("type[Exception]", _ValidationErrorType)
+
+
+_VALIDATOR: _JsonSchemaValidator = Draft202012Validator(TELEMETRY_SCHEMA)
 _LISTENER_LOCK = threading.RLock()
 _EVENT_LISTENERS: list[Callable[[TelemetryEvent], None]] = []
 _SINK_LOCK = threading.RLock()
@@ -160,13 +175,16 @@ def validate_event(payload: Mapping[str, object]) -> None:
     try:
         _VALIDATOR.validate(candidate)
     except ValidationError as exc:
-        path = "/".join(str(part) for part in exc.path)
+        error = cast("_ValidationError", exc)
+        path_iter = tuple(error.path)
+        path = "/".join(str(part) for part in path_iter)
+        message_text = error.message
         prefix = (
             f"Telemetry payload invalid at {path}: "
             if path
             else "Telemetry payload invalid: "
         )
-        raise TelemetryValidationError(prefix + exc.message) from exc
+        raise TelemetryValidationError(prefix + message_text) from exc
 
 
 def coerce_event(event: Mapping[str, object]) -> TelemetryEvent:

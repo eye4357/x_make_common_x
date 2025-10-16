@@ -2,6 +2,13 @@
 
 All notable changes to x_make_common_x are logged here. We observe [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) principles and Semantic Versioning even when the heat starts to rise.
 
+## [0.20.4] - 2025-10-15
+### Added
+- Exporter suite for Markdown→PDF, Graphviz→SVG, and Mermaid→SVG with a shared `ExportResult` contract, binary discovery, and artifact metadata for the Kanban evidence trail.
+
+### Changed
+- README and operating guides updated for the Road to 0.20.4 release blueprint, covering exporter guardrails and fallback behaviour when binaries go missing.
+
 ## [0.20.3] - 2025-10-14
 ### Added
 - JSON-backed `JsonBoardState` and `JsonCardRecord` so every workflow can track tasks without touching `x_legatus_tabula_opus`.

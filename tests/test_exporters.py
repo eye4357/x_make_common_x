@@ -1,10 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
+# ruff: noqa: S101 - pytest prefers assert statements for readability
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    import pytest
+
+import x_make_common_x.exporters as exporters_module
 from x_make_common_x.exporters import (
     export_graphviz_to_svg,
     export_html_to_pdf,
@@ -12,8 +19,9 @@ from x_make_common_x.exporters import (
     export_mermaid_to_svg,
 )
 
-if TYPE_CHECKING:
-    from _pytest.monkeypatch import MonkeyPatch
+
+def _stub_which(_name: str) -> str | None:
+    return None
 
 
 def _completed(
@@ -33,8 +41,9 @@ def _write_from_command(command: Sequence[str], *, flag: str | None = None) -> P
     else:
         try:
             idx = cmd.index(flag)
-        except ValueError:
-            raise AssertionError(f"flag {flag!r} not found in command {cmd!r}")
+        except ValueError as exc:
+            message = f"flag {flag!r} not found in command {cmd!r}"
+            raise AssertionError(message) from exc
         target = Path(cmd[idx + 1])
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text("artifact", encoding="utf-8")
@@ -42,12 +51,15 @@ def _write_from_command(command: Sequence[str], *, flag: str | None = None) -> P
 
 
 def test_export_markdown_to_pdf_missing_binary(
-    tmp_path: Path, monkeypatch: MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("X_WKHTMLTOPDF_PATH", str(tmp_path / "missing.exe"))
-    monkeypatch.setattr("x_make_common_x.exporters.shutil.which", lambda _name: None)
+    shutil_module = cast("object", getattr(exporters_module, "shutil", None))
+    assert shutil_module is not None
+    monkeypatch.setattr(shutil_module, "which", _stub_which)
     monkeypatch.setattr(
-        "x_make_common_x.exporters._DEFAULT_WKHTMLTOPDF_CANDIDATES",
+        exporters_module,
+        "_DEFAULT_WKHTMLTOPDF_CANDIDATES",
         (),
         raising=False,
     )
@@ -72,8 +84,10 @@ def test_export_markdown_to_pdf_success_with_stub(tmp_path: Path) -> None:
         return _completed(command, stdout="ok")
 
     result = export_markdown_to_pdf(
-        "# Heading", output_dir=tmp_path, stem="report", wkhtmltopdf_path=tmp_path
-        / "wkhtmltopdf.exe",
+        "# Heading",
+        output_dir=tmp_path,
+        stem="report",
+        wkhtmltopdf_path=tmp_path / "wkhtmltopdf.exe",
         runner=runner,
     )
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import builtins
 import contextlib
 import json
 from collections.abc import Iterable, Mapping
@@ -106,11 +105,14 @@ class BoardState:
             msg = f"card not found: {card_id}"
             raise ValueError(msg) from exc
 
-    def list(self) -> builtins.list[CardRecord]:
+    def list_cards(self) -> list[CardRecord]:
         return list(self.cards.values())
 
-    def to_json(self) -> builtins.list[dict[str, object]]:
-        ordered = sorted(self.cards.values(), key=lambda card: card.updated_at)
+    def to_json(self) -> list[dict[str, object]]:
+        def _updated_key(card: CardRecord) -> datetime:
+            return card.updated_at
+
+        ordered = sorted(self.cards.values(), key=_updated_key)
         return [card.to_json() for card in ordered]
 
 
@@ -118,12 +120,12 @@ def load_board(path: Path | str) -> BoardState:
     path_obj = Path(path)
     if not path_obj.exists():
         return BoardState()
-    payload_obj = json.loads(path_obj.read_text(encoding="utf-8"))
+    payload_obj: object = json.loads(path_obj.read_text(encoding="utf-8"))
     if not isinstance(payload_obj, list):
         msg = "Board JSON must be a list of card objects"
         raise TypeError(msg)
     state = BoardState()
-    payload_list = payload_obj
+    payload_list = cast("list[object]", payload_obj)
     for entry in payload_list:
         if isinstance(entry, Mapping):
             mapping_entry = cast("Mapping[str, object]", entry)
@@ -137,7 +139,7 @@ def dump_board(state: BoardState) -> list[dict[str, object]]:
 
 
 def save_board(path: Path | str, state: BoardState) -> None:
-    serialized = json.dumps(dump_board(state), indent=2, sort_keys=False)
+    serialized: str = json.dumps(dump_board(state), indent=2, sort_keys=False)
     Path(path).write_text(serialized, encoding="utf-8")
 
 

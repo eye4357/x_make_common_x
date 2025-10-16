@@ -16,6 +16,7 @@ import subprocess
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from .x_logging_utils_x import log_debug, log_info
 from .x_subprocess_utils_x import run_command
@@ -136,7 +137,7 @@ def export_markdown_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         default_candidates=_DEFAULT_WKHTMLTOPDF_CANDIDATES,
     )
     pdf_path = output_dir / f"{stem}.pdf"
-    result = _run_wkhtmltopdf(
+    return _run_wkhtmltopdf(
         exporter=exporter_name,
         binary=binary,
         html_path=html_path,
@@ -146,7 +147,6 @@ def export_markdown_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         extra_args=extra_args,
         keep_html=keep_html,
     )
-    return result
 
 
 def export_html_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
@@ -171,7 +171,7 @@ def export_html_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         default_candidates=_DEFAULT_WKHTMLTOPDF_CANDIDATES,
     )
     pdf_path = output_dir / f"{stem}.pdf"
-    result = _run_wkhtmltopdf(
+    return _run_wkhtmltopdf(
         exporter=exporter_name,
         binary=binary,
         html_path=html_path,
@@ -181,7 +181,6 @@ def export_html_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         extra_args=extra_args,
         keep_html=keep_html,
     )
-    return result
 
 
 def export_graphviz_to_svg(  # noqa: PLR0913 - explicit parameters aid clarity
@@ -228,8 +227,10 @@ def export_graphviz_to_svg(  # noqa: PLR0913 - explicit parameters aid clarity
     if extra_args:
         command[1:1] = [str(arg) for arg in extra_args]
     completed = _execute_command(command, runner=runner)
-    stdout = completed.stdout or ""
-    stderr = completed.stderr or ""
+    stdout_raw = cast("str | None", getattr(completed, "stdout", None))
+    stderr_raw = cast("str | None", getattr(completed, "stderr", None))
+    stdout = stdout_raw or ""
+    stderr = stderr_raw or ""
     succeeded = completed.returncode == 0 and svg_path.exists()
     detail: str | None = None if succeeded else "dot execution failed"
     if not keep_dot and svg_path.exists():
@@ -287,8 +288,10 @@ def export_mermaid_to_svg(  # noqa: PLR0913 - explicit parameters aid clarity
     if extra_args:
         command.extend(str(arg) for arg in extra_args)
     completed = _execute_command(command, runner=runner)
-    stdout = completed.stdout or ""
-    stderr = completed.stderr or ""
+    stdout_raw = cast("str | None", getattr(completed, "stdout", None))
+    stderr_raw = cast("str | None", getattr(completed, "stderr", None))
+    stdout = stdout_raw or ""
+    stderr = stderr_raw or ""
     succeeded = completed.returncode == 0 and svg_path.exists()
     detail: str | None = None if succeeded else "mmdc execution failed"
     return ExportResult(
@@ -309,19 +312,20 @@ def _default_markdown_to_html(markdown_text: str) -> str:
 
     try:
         module = __import__("markdown")
-        render = getattr(module, "markdown", None)
-        if callable(render):
-            rendered = render(markdown_text or "")
+        renderer = cast(
+            "Callable[[str], object] | None",
+            getattr(module, "markdown", None),
+        )
+        if renderer is not None:
+            rendered = renderer(markdown_text or "")
             return str(rendered)
     except Exception:  # noqa: BLE001 - fall through to minimal HTML
-        log_info(
-            "python-markdown unavailable; falling back to <pre> wrapper for HTML"
-        )
+        log_info("python-markdown unavailable; falling back to <pre> wrapper for HTML")
     escaped = (markdown_text or "").replace("<", "&lt;").replace(">", "&gt;")
     return f"<pre>{escaped}</pre>"
 
 
-def _run_wkhtmltopdf(
+def _run_wkhtmltopdf(  # noqa: PLR0913 - explicit options keep callsites obvious
     *,
     exporter: str,
     binary: Path | None,
@@ -353,8 +357,10 @@ def _run_wkhtmltopdf(
         command.extend(str(arg) for arg in extra_args)
     command.extend((str(html_path), str(pdf_path)))
     completed = _execute_command(command, runner=runner)
-    stdout = completed.stdout or ""
-    stderr = completed.stderr or ""
+    stdout_raw = cast("str | None", getattr(completed, "stdout", None))
+    stderr_raw = cast("str | None", getattr(completed, "stderr", None))
+    stdout = stdout_raw or ""
+    stderr = stderr_raw or ""
     succeeded = completed.returncode == 0 and pdf_path.exists()
     detail: str | None = None if succeeded else "wkhtmltopdf execution failed"
     if not keep_html and pdf_path.exists():

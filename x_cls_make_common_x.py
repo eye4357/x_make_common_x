@@ -4,7 +4,7 @@ import json
 import logging
 import sys
 from contextlib import suppress
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Final
 
 from .telemetry import SCHEMA_VERSION
@@ -60,6 +60,13 @@ class CommonDiagnostics:
     utilities: tuple[str, ...]
     ctx_present: bool
 
+    def to_payload(self) -> dict[str, object]:
+        return {
+            "telemetry_schema_version": self.telemetry_schema_version,
+            "utilities": list(self.utilities),
+            "ctx_present": self.ctx_present,
+        }
+
 
 class XClsMakeCommonX:
     """Lightweight diagnostics provider for the shared helpers package."""
@@ -92,11 +99,11 @@ def main() -> CommonDiagnostics:
 if __name__ == "__main__":
     try:
         diagnostics = main()
-        payload = json.dumps(asdict(diagnostics), indent=2)
+        payload = json.dumps(diagnostics.to_payload(), indent=2)
         _info(payload)
-    except Exception as exc:  # noqa: BLE001 - surface failure for operators
+    except Exception as exc:
         _error("x_make_common_x diagnostics failed:", exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
 
 x_cls_make_common_x = XClsMakeCommonX
