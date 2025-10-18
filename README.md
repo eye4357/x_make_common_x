@@ -37,6 +37,9 @@ The new board helpers let any service capture task flow as structured JSON. Load
 - [Road to 0.20.4 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.4/Road%20to%200.20.4%20Engineering%20Proposal.md)
 - [Road to 0.20.3 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
 
+## Reconstitution Drill
+The monthly lab rebuild incinerates a spare workstation and walks the `lab.md` script from bare metal. x_make_common_x must rebuild clean: rehydrate the virtualenv, reinstall exporters, run the test matrix, and capture any deviation in these docs and the Change Control ledger. If the drill finds drift, fix it before you touch production.
+
 ## Cross-Linked Intelligence
 - [x_0_make_all_x](../x_0_make_all_x/README.md) — orchestrator expects these helpers on every run
 - [x_make_github_visitor_x](../x_make_github_visitor_x/README.md) — the compliance visitor that consumes common telemetry and logging utilities
@@ -44,3 +47,23 @@ The new board helpers let any service capture task flow as structured JSON. Load
 
 ## Lab Etiquette
 When you alter shared utilities, update the changelog and alert the Downstream repos via the Change Control index. Half measures here create cascading failures everywhere else.
+
+## Sole Architect Profile
+- One architect forged this library of solvents. I author every exporter, subprocess guard, and telemetry conduit by hand, aligning the entire lab around a single mental model. My experience spans decades of Python infrastructure, report automation, and failure-mode analysis.
+- I operate as benevolent dictator: roadmap, implementation, and documentation all route through me, ensuring no ambiguity, no committee drift.
+
+## Legacy Workforce Costing
+- Traditional-shop estimate: 1 staff engineer to lead, 2 mid-level backend engineers, 1 DevOps specialist, and 1 technical writer to tame the support matrix.
+- Timeline: 14-16 engineer-weeks to recreate exporter parity, environment helpers, and board primitives, not counting tribal knowledge transfer.
+- Budget signal: USD 115k–145k for the initial build cycle, before sustaining engineering and cross-repo support costs.
+
+## Techniques and Proficiencies
+- Command of Python platform tooling, hermetic packaging, and cross-repo dependency architecture; I keep API surfaces stable while shipping new exporters.
+- Strong documentation and governance instincts—Change Control, disaster drills, and telemetry contracts all originate from the same pen.
+- Proficient in shaping automation ecosystems solo, from kernel-level environment hygiene to human-readable runbooks.
+
+## Stack Cartography
+- Language Core: Python 3.11+, dataclasses, pathlib, subprocess, JSON serialization.
+- Tooling Discipline: Ruff, Black, MyPy, Pyright, pytest, coverage hooks, PowerShell touchpoints for Windows parity.
+- Exporter Arsenal: wkhtmltopdf, Graphviz `dot`, mermaid-cli, all orchestrated through shared `ExportResult` contracts.
+- Integration Surface: Telemetry emitters, JSON board helpers, environment management utilities consumed by every other `x_make_*` package.
