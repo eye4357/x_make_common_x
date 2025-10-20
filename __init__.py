@@ -25,6 +25,7 @@ from .json_board import (
 from .json_board import (
     save_board as save_json_board,
 )
+from .json_contracts import validate_payload, validate_schema
 from .run_reports import (
     REPORTS_DIR_NAME,
     TIMESTAMP_FILENAME_FORMAT,
@@ -32,23 +33,7 @@ from .run_reports import (
     isoformat_timestamp,
     write_run_report,
 )
-from .telemetry import (
-    SCHEMA_VERSION,
-    TELEMETRY_SCHEMA,
-    TelemetryEvent,
-    TelemetryValidationError,
-    coerce_event,
-    configure_event_sink,
-    dump_to_file,
-    dumps,
-    emit_event,
-    ensure_timestamp,
-    loads,
-    make_event,
-    register_listener,
-    unregister_listener,
-    validate_event,
-)
+from .telemetry import JSONValue, TelemetryEvent, emit_event, make_event
 from .x_env_x import ensure_workspace_on_syspath, get_env_bool, get_env_str
 from .x_http_client_x import HttpClient, HttpError, HttpResponse
 from .x_logging_utils_x import get_logger, log_debug, log_error, log_info
@@ -56,8 +41,6 @@ from .x_subprocess_utils_x import CommandError, run_command
 
 __all__ = [
     "REPORTS_DIR_NAME",
-    "SCHEMA_VERSION",
-    "TELEMETRY_SCHEMA",
     "TIMESTAMP_FILENAME_FORMAT",
     "CommandError",
     "CommandRunner",
@@ -65,19 +48,14 @@ __all__ = [
     "HttpClient",
     "HttpError",
     "HttpResponse",
+    "JSONValue",
     "JsonBoardState",
     "JsonCardRecord",
     "TelemetryEvent",
-    "TelemetryValidationError",
     "board_from_records",
-    "coerce_event",
-    "configure_event_sink",
     "dump_board",
-    "dump_to_file",
-    "dumps",
     "emit_event",
     "ensure_reports_dir",
-    "ensure_timestamp",
     "ensure_workspace_on_syspath",
     "export_graphviz_to_svg",
     "export_markdown_to_pdf",
@@ -87,15 +65,13 @@ __all__ = [
     "get_logger",
     "isoformat_timestamp",
     "load_json_board",
-    "loads",
     "log_debug",
     "log_error",
     "log_info",
     "make_event",
-    "register_listener",
     "run_command",
     "save_json_board",
-    "unregister_listener",
-    "validate_event",
+    "validate_payload",
+    "validate_schema",
     "write_run_report",
 ]

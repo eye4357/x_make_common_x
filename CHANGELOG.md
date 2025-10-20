@@ -1,6 +1,6 @@
-# Changelog — Control Room Production Log
+# x_make_common_x — Production Ledger
 
-All notable changes to x_make_common_x are logged here. We observe [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) principles and Semantic Versioning even when the heat starts to rise.
+I capture every significant change to this solvent package here. Entries follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Semantic Versioning so audits can trace downstream behavior back to the exact utility release.
 
 ## [0.20.4] - 2025-10-15
 ### Added
@@ -19,7 +19,7 @@ All notable changes to x_make_common_x are logged here. We observe [Keep a Chang
 
 ## [0.20.2] - 2025-10-14
 ### Changed
-- Hardened documentation for telemetry, subprocess, and HTTP helpers to the Road to 0.20.2 control-room brief so every downstream repo marches in lockstep.
+- Hardened documentation for audit trails, subprocess, and HTTP helpers to the Road to 0.20.2 control-room brief so every downstream repo marches in lockstep.
 
 ## [0.20.1] - 2025-10-13
 ### Changed

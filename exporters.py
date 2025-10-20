@@ -68,12 +68,15 @@ def _resolve_binary(
     env_var: str | None,
     fallback_names: Sequence[str],
     default_candidates: Sequence[Path] | None = None,
+    allow_missing_preferred: bool = False,
 ) -> Path | None:
     """Resolve a binary path using explicit, env, and PATH lookups."""
 
     if preferred_path:
         candidate = Path(preferred_path)
         if candidate.is_file():
+            return candidate
+        if allow_missing_preferred:
             return candidate
     if env_var:
         env_value = os.environ.get(env_var)
@@ -135,6 +138,7 @@ def export_markdown_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         env_var="X_WKHTMLTOPDF_PATH",
         fallback_names=("wkhtmltopdf", "wkhtmltopdf.exe"),
         default_candidates=_DEFAULT_WKHTMLTOPDF_CANDIDATES,
+        allow_missing_preferred=runner is not None,
     )
     pdf_path = output_dir / f"{stem}.pdf"
     return _run_wkhtmltopdf(
@@ -169,6 +173,7 @@ def export_html_to_pdf(  # noqa: PLR0913 - explicit parameters aid clarity
         env_var="X_WKHTMLTOPDF_PATH",
         fallback_names=("wkhtmltopdf", "wkhtmltopdf.exe"),
         default_candidates=_DEFAULT_WKHTMLTOPDF_CANDIDATES,
+        allow_missing_preferred=runner is not None,
     )
     pdf_path = output_dir / f"{stem}.pdf"
     return _run_wkhtmltopdf(

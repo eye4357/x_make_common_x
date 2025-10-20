@@ -5,13 +5,14 @@ import logging
 import sys
 from contextlib import suppress
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final
 
-from .telemetry import SCHEMA_VERSION
+from .run_reports import REPORTS_DIR_NAME
 
 _LOGGER = logging.getLogger("x_make")
 _UTILITIES: Final[tuple[str, ...]] = (
-    "telemetry",
+    "run_reports",
     "json_board",
     "x_env_x",
     "x_http_client_x",
@@ -56,15 +57,17 @@ def _error(*parts: object) -> None:
 
 @dataclass(slots=True)
 class CommonDiagnostics:
-    telemetry_schema_version: str
     utilities: tuple[str, ...]
     ctx_present: bool
+    reports_dir: str
+    reports_dir_exists: bool
 
     def to_payload(self) -> dict[str, object]:
         return {
-            "telemetry_schema_version": self.telemetry_schema_version,
             "utilities": list(self.utilities),
             "ctx_present": self.ctx_present,
+            "reports_dir": self.reports_dir,
+            "reports_dir_exists": self.reports_dir_exists,
         }
 
 
@@ -75,19 +78,22 @@ class XClsMakeCommonX:
         self._ctx = ctx
 
     def diagnostics(self) -> CommonDiagnostics:
+        reports_dir_path = Path.cwd() / REPORTS_DIR_NAME
         return CommonDiagnostics(
-            telemetry_schema_version=SCHEMA_VERSION,
             utilities=_UTILITIES,
             ctx_present=self._ctx is not None,
+            reports_dir=str(reports_dir_path),
+            reports_dir_exists=reports_dir_path.is_dir(),
         )
 
     def run(self) -> CommonDiagnostics:
         diagnostics = self.diagnostics()
         _info(
             "x_make_common_x ready",
-            f"telemetry_schema={diagnostics.telemetry_schema_version}",
             f"utilities={', '.join(diagnostics.utilities)}",
             f"ctx={'present' if diagnostics.ctx_present else 'absent'}",
+            f"reports_dir={diagnostics.reports_dir}",
+            f"reports_dir_exists={diagnostics.reports_dir_exists}",
         )
         return diagnostics
 
