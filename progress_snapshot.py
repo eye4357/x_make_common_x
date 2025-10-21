@@ -5,7 +5,6 @@ from __future__ import annotations
 import contextlib
 import errno
 import json
-import os
 import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -19,6 +18,8 @@ _ATOMIC_WRITE_RETRY_BASE_SECONDS = 0.1
 
 ProgressStatus = Literal["pending", "running", "attention", "completed", "blocked"]
 _VALID_STATUSES: set[str] = {"pending", "running", "attention", "completed", "blocked"}
+_WINDOWS_SHARING_VIOLATIONS = {5, 32}
+_POSIX_SHARING_VIOLATIONS = {errno.EACCES, errno.EPERM}
 
 __all__ = [
     "ProgressSnapshot",
@@ -54,6 +55,21 @@ def _sanitize_metadata(metadata: Mapping[str, object] | None) -> dict[str, objec
     return sanitized
 
 
+def _normalize_object_mapping(mapping: Mapping[str, object]) -> dict[str, object]:
+    normalized: dict[str, object] = {}
+    for key, value in mapping.items():
+        normalized[str(key)] = value
+    return normalized
+
+
+def _is_transient_replace_error(error: OSError) -> bool:
+    errno_attr: object = getattr(error, "errno", None)
+    if isinstance(errno_attr, int) and errno_attr in _POSIX_SHARING_VIOLATIONS:
+        return True
+    winerror_obj: object = getattr(error, "winerror", None)
+    return isinstance(winerror_obj, int) and winerror_obj in _WINDOWS_SHARING_VIOLATIONS
+
+
 def _atomic_write(path: Path, payload: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_suffix(path.suffix + ".tmp")
@@ -61,15 +77,14 @@ def _atomic_write(path: Path, payload: str) -> None:
     last_error: PermissionError | OSError | None = None
     for attempt in range(1, _ATOMIC_WRITE_MAX_ATTEMPTS + 1):
         try:
-            os.replace(tmp_path, path)
+            tmp_path.replace(path)
         except PermissionError as exc:
-            winerror = getattr(exc, "winerror", None)
-            if winerror not in {5, 32} and exc.errno not in {errno.EACCES, errno.EPERM}:
+            if not _is_transient_replace_error(exc):
                 tmp_path.unlink(missing_ok=True)
                 raise
             last_error = exc
         except OSError as exc:
-            if exc.errno not in {errno.EACCES, errno.EPERM}:
+            if not _is_transient_replace_error(exc):
                 tmp_path.unlink(missing_ok=True)
                 raise
             last_error = exc
@@ -79,7 +94,7 @@ def _atomic_write(path: Path, payload: str) -> None:
 
     tmp_path.unlink(missing_ok=True)
     if last_error is None:
-        last_error = PermissionError("os.replace repeatedly failed")
+        last_error = PermissionError("Path.replace repeatedly failed")
     raise last_error
 
 
@@ -107,9 +122,11 @@ class ProgressStage:
         stage_id_obj = payload.get("id")
         title_obj = payload.get("title")
         if not isinstance(stage_id_obj, str) or not stage_id_obj.strip():
-            raise ValueError("progress stage payload missing 'id'")
+            error_missing_id = "progress stage payload missing 'id'"
+            raise ValueError(error_missing_id)
         if not isinstance(title_obj, str) or not title_obj.strip():
-            raise ValueError("progress stage payload missing 'title'")
+            error_missing_title = "progress stage payload missing 'title'"
+            raise ValueError(error_missing_title)
         status_obj = payload.get("status")
         status_raw = status_obj if isinstance(status_obj, str) else "pending"
         status = status_raw if status_raw in _VALID_STATUSES else "attention"
@@ -196,7 +213,8 @@ class ProgressSnapshot:
     def from_json(cls, payload: Mapping[str, object]) -> ProgressSnapshot:
         stages_payload = payload.get("stages")
         if not isinstance(stages_payload, Sequence):
-            raise ValueError("progress snapshot requires 'stages' list")
+            error_missing_stages = "progress snapshot requires 'stages' list"
+            raise TypeError(error_missing_stages)
         snapshot = cls()
         created_obj = payload.get("created_at")
         updated_obj = payload.get("updated_at")
@@ -210,12 +228,17 @@ class ProgressSnapshot:
         snapshot.summary = str(summary_obj) if isinstance(summary_obj, str) else None
         for entry in stages_payload:
             if isinstance(entry, Mapping):
-                stage = ProgressStage.from_json(entry)
+                normalized_entry = _normalize_object_mapping(
+                    cast("Mapping[str, object]", entry)
+                )
+                stage = ProgressStage.from_json(normalized_entry)
                 snapshot.stages[stage.stage_id] = stage
         return snapshot
 
 
-def create_progress_snapshot(stage_definitions: Iterable[tuple[str, str]]) -> ProgressSnapshot:
+def create_progress_snapshot(
+    stage_definitions: Iterable[tuple[str, str]],
+) -> ProgressSnapshot:
     snapshot = ProgressSnapshot()
     for stage_id, title in stage_definitions:
         snapshot.ensure_stage(str(stage_id), str(title))
@@ -233,7 +256,11 @@ def load_progress_snapshot(path: Path | str) -> ProgressSnapshot | None:
     path_obj = Path(path)
     if not path_obj.exists():
         return None
-    payload = json.loads(path_obj.read_text(encoding="utf-8"))
-    if not isinstance(payload, Mapping):
-        raise TypeError("progress snapshot JSON must be an object")
-    return ProgressSnapshot.from_json(payload)
+    raw_payload: object = json.loads(path_obj.read_text(encoding="utf-8"))
+    if not isinstance(raw_payload, Mapping):
+        error_invalid_payload = "progress snapshot JSON must be an object"
+        raise TypeError(error_invalid_payload)
+    normalized_payload = _normalize_object_mapping(
+        cast("Mapping[str, object]", raw_payload)
+    )
+    return ProgressSnapshot.from_json(normalized_payload)

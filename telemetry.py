@@ -13,7 +13,9 @@ JSONPrimitive = str | int | float | bool | None
 JSONValue = JSONPrimitive | Mapping[str, "JSONValue"] | Sequence["JSONValue"]
 
 
-def _coerce_json_mapping(mapping: Mapping[str, JSONValue] | None) -> Mapping[str, JSONValue] | None:
+def _coerce_json_mapping(
+    mapping: Mapping[str, JSONValue] | None,
+) -> Mapping[str, JSONValue] | None:
     if mapping is None:
         return None
     # Normalise nested values into JSON-compatible structures.
@@ -64,10 +66,20 @@ class TelemetryEvent:
             payload["duration_ms"] = self.duration_ms
         if self.details is not None:
             payload["details"] = {
-                key: _json_ready(value)
-                for key, value in self.details.items()
+                key: _json_ready(value) for key, value in self.details.items()
             }
         return payload
+
+
+@dataclass(slots=True, frozen=True)
+class TelemetryContext:
+    """Optional metadata for :func:`make_event` to avoid long signatures."""
+
+    repository: str | None = None
+    tool: str | None = None
+    attempt: int | None = None
+    duration_ms: int | None = None
+    details: Mapping[str, JSONValue] | None = None
 
 
 def make_event(
@@ -75,26 +87,23 @@ def make_event(
     source: str,
     phase: str,
     status: str,
-    repository: str | None = None,
-    tool: str | None = None,
-    attempt: int | None = None,
-    duration_ms: int | None = None,
-    details: Mapping[str, JSONValue] | None = None,
+    context: TelemetryContext | None = None,
     timestamp: datetime | None = None,
 ) -> TelemetryEvent:
     """Build a :class:`TelemetryEvent` for downstream emission."""
 
+    ctx = context or TelemetryContext()
     event_timestamp = isoformat_timestamp(timestamp or datetime.now(UTC))
     return TelemetryEvent(
         timestamp=event_timestamp,
         source=source,
         phase=phase,
         status=status,
-        repository=repository,
-        tool=tool,
-        attempt=attempt,
-        duration_ms=duration_ms,
-        details=_coerce_json_mapping(details),
+        repository=ctx.repository,
+        tool=ctx.tool,
+        attempt=ctx.attempt,
+        duration_ms=ctx.duration_ms,
+        details=_coerce_json_mapping(ctx.details),
     )
 
 
@@ -116,6 +125,7 @@ def emit_event(event: Mapping[str, JSONValue] | TelemetryEvent) -> None:
 
 __all__ = [
     "JSONValue",
+    "TelemetryContext",
     "TelemetryEvent",
     "emit_event",
     "make_event",

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import shutil
 from collections.abc import Mapping, MutableMapping, Sequence
@@ -31,6 +30,16 @@ _COMPLETION_STATUSES = {"completed", "attention", "blocked", "skipped"}
 _DETAIL_SCHEMA = "x_make.stage_progress.repo/1.0"
 _INDEX_SCHEMA = "x_make.stage_progress.index/1.0"
 _MESSAGE_LIMIT = 10
+
+
+@dataclass(slots=True)
+class _EntryUpdate:
+    status: str
+    messages: Sequence[str] | None = None
+    metadata: Mapping[str, object] | None = None
+    mark_started: bool = False
+    mark_completed: bool = False
+    replace_messages: bool = False
 
 
 class RepoProgressReporter(Protocol):
@@ -88,7 +97,7 @@ def _atomic_write(path: Path, payload: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     tmp_path.write_text(payload, encoding="utf-8")
-    os.replace(tmp_path, path)
+    tmp_path.replace(path)
 
 
 def _sanitize_messages(messages: Sequence[str] | None) -> list[str]:
@@ -135,8 +144,12 @@ def _safe_repo_filename(repo_id: str) -> str:
     cleaned = cleaned.strip("._")
     if not cleaned:
         cleaned = "repo"
-    digest = hashlib.sha1(repo_id.encode("utf-8", "ignore")).hexdigest()[:8]
+    digest = hashlib.sha256(repo_id.encode("utf-8", "ignore")).hexdigest()[:8]
     return f"{cleaned}_{digest}.json"
+
+
+def _entry_sort_key(entry: StageProgressEntry) -> str:
+    return entry.repo_id.lower()
 
 
 @dataclass(slots=True)
@@ -160,7 +173,9 @@ class StageProgressEntry:
             "messages": list(self.messages),
             "metadata": self.metadata,
             "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "updated_at": self.updated_at.isoformat(),
         }
 
@@ -172,7 +187,9 @@ class StageProgressEntry:
             "detail_path": detail_path,
             "updated_at": self.updated_at.isoformat(),
             "started_at": self.started_at.isoformat() if self.started_at else None,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "completed_at": (
+                self.completed_at.isoformat() if self.completed_at else None
+            ),
             "message_preview": list(self.messages[:3]),
         }
 
@@ -231,12 +248,12 @@ class StageProgressWriter(RepoProgressReporter):
         entry = self._ensure_entry(repo_id, display_name)
         self._update_entry(
             entry,
-            status="pending",
-            messages=messages,
-            metadata=metadata,
-            mark_started=False,
-            mark_completed=False,
-            replace_messages=True,
+            _EntryUpdate(
+                status="pending",
+                messages=messages,
+                metadata=metadata,
+                replace_messages=True,
+            ),
         )
 
     def record_start(
@@ -250,11 +267,12 @@ class StageProgressWriter(RepoProgressReporter):
         entry = self._ensure_entry(repo_id, display_name)
         self._update_entry(
             entry,
-            status="running",
-            messages=messages,
-            metadata=metadata,
-            mark_started=True,
-            mark_completed=False,
+            _EntryUpdate(
+                status="running",
+                messages=messages,
+                metadata=metadata,
+                mark_started=True,
+            ),
         )
 
     def record_success(
@@ -266,14 +284,16 @@ class StageProgressWriter(RepoProgressReporter):
         messages: Sequence[str] | None = None,
     ) -> None:
         entry = self._ensure_entry(repo_id, display_name)
-        fallback = (messages or ("Completed successfully.",))
+        fallback = messages or ("Completed successfully.",)
         self._update_entry(
             entry,
-            status="completed",
-            messages=fallback,
-            metadata=metadata,
-            mark_started=True,
-            mark_completed=True,
+            _EntryUpdate(
+                status="completed",
+                messages=fallback,
+                metadata=metadata,
+                mark_started=True,
+                mark_completed=True,
+            ),
         )
 
     def record_failure(
@@ -288,11 +308,13 @@ class StageProgressWriter(RepoProgressReporter):
         fallback = messages or ("Failed with issues.",)
         self._update_entry(
             entry,
-            status="attention",
-            messages=fallback,
-            metadata=metadata,
-            mark_started=True,
-            mark_completed=True,
+            _EntryUpdate(
+                status="attention",
+                messages=fallback,
+                metadata=metadata,
+                mark_started=True,
+                mark_completed=True,
+            ),
         )
 
     def record_skipped(
@@ -307,11 +329,12 @@ class StageProgressWriter(RepoProgressReporter):
         fallback = messages or ("Skipped.",)
         self._update_entry(
             entry,
-            status="skipped",
-            messages=fallback,
-            metadata=metadata,
-            mark_started=False,
-            mark_completed=True,
+            _EntryUpdate(
+                status="skipped",
+                messages=fallback,
+                metadata=metadata,
+                mark_completed=True,
+            ),
         )
 
     # Internal helpers -------------------------------------------------
@@ -330,37 +353,27 @@ class StageProgressWriter(RepoProgressReporter):
             entry.display_name = display_name
         return entry
 
-    def _update_entry(
-        self,
-        entry: StageProgressEntry,
-        *,
-        status: str,
-        messages: Sequence[str] | None,
-        metadata: Mapping[str, object] | None,
-        mark_started: bool,
-        mark_completed: bool,
-        replace_messages: bool = False,
-    ) -> None:
-        normalized_status = _normalize_status(status)
+    def _update_entry(self, entry: StageProgressEntry, update: _EntryUpdate) -> None:
+        normalized_status = _normalize_status(update.status)
         now = _now()
-        if mark_started and entry.started_at is None:
+        if update.mark_started and entry.started_at is None:
             entry.started_at = now
-        if mark_completed or normalized_status in _COMPLETION_STATUSES:
+        if update.mark_completed or normalized_status in _COMPLETION_STATUSES:
             entry.completed_at = entry.completed_at or now
         entry.status = normalized_status
-        sanitized = _sanitize_messages(messages)
+        sanitized = _sanitize_messages(update.messages)
         if sanitized:
-            if replace_messages:
+            if update.replace_messages:
                 entry.messages = tuple(sanitized)
             else:
                 combined = list(entry.messages)
                 combined.extend(sanitized)
                 entry.messages = tuple(_sanitize_messages(combined))
-        elif replace_messages:
+        elif update.replace_messages:
             entry.messages = ()
-        if metadata:
+        if update.metadata:
             meta = entry.metadata
-            for key, value in metadata.items():
+            for key, value in update.metadata.items():
                 meta[str(key)] = _json_ready(value)
         entry.updated_at = now
         self._write_entry(entry)
@@ -376,9 +389,7 @@ class StageProgressWriter(RepoProgressReporter):
 
     def _write_index(self) -> None:
         counts = self._status_counts()
-        ordered_entries = sorted(
-            self._entries.values(), key=lambda entry: entry.repo_id.lower()
-        )
+        ordered_entries = sorted(self._entries.values(), key=_entry_sort_key)
         index_entries = []
         for entry in ordered_entries:
             detail_path = self._entry_files.get(entry.repo_id) or ""
