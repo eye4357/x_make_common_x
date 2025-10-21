@@ -26,12 +26,25 @@ from .json_board import (
     save_board as save_json_board,
 )
 from .json_contracts import validate_payload, validate_schema
+from .progress_snapshot import (
+    ProgressSnapshot,
+    ProgressStage,
+    ProgressStatus,
+    create_progress_snapshot,
+    load_progress_snapshot,
+    write_progress_snapshot,
+)
 from .run_reports import (
     REPORTS_DIR_NAME,
     TIMESTAMP_FILENAME_FORMAT,
     ensure_reports_dir,
     isoformat_timestamp,
     write_run_report,
+)
+from .stage_progress import (
+    RepoProgressReporter,
+    StageProgressEntry,
+    StageProgressWriter,
 )
 from .telemetry import JSONValue, TelemetryEvent, emit_event, make_event
 from .x_env_x import ensure_workspace_on_syspath, get_env_bool, get_env_str
@@ -51,8 +64,15 @@ __all__ = [
     "JSONValue",
     "JsonBoardState",
     "JsonCardRecord",
+    "ProgressSnapshot",
+    "ProgressStage",
+    "ProgressStatus",
+    "RepoProgressReporter",
+    "StageProgressEntry",
+    "StageProgressWriter",
     "TelemetryEvent",
     "board_from_records",
+    "create_progress_snapshot",
     "dump_board",
     "emit_event",
     "ensure_reports_dir",
@@ -65,6 +85,7 @@ __all__ = [
     "get_logger",
     "isoformat_timestamp",
     "load_json_board",
+    "load_progress_snapshot",
     "log_debug",
     "log_error",
     "log_info",
@@ -73,5 +94,6 @@ __all__ = [
     "save_json_board",
     "validate_payload",
     "validate_schema",
+    "write_progress_snapshot",
     "write_run_report",
 ]
