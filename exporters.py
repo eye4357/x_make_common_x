@@ -32,6 +32,40 @@ _DEFAULT_WKHTMLTOPDF_CANDIDATES: tuple[Path, ...] = (
 )
 
 
+def _preferred_binary(
+    preferred_path: str | os.PathLike[str] | None,
+    *,
+    allow_missing: bool,
+) -> Path | None:
+    if not preferred_path:
+        return None
+    candidate = Path(preferred_path)
+    if candidate.is_file() or allow_missing:
+        return candidate
+    return None
+
+
+def _env_binary(env_var: str | None) -> Path | None:
+    if not env_var:
+        return None
+    env_value = os.environ.get(env_var)
+    if not env_value:
+        return None
+    candidate = Path(env_value)
+    if candidate.is_file():
+        return candidate
+    return None
+
+
+def _first_existing(default_candidates: Sequence[Path] | None) -> Path | None:
+    if not default_candidates:
+        return None
+    for default in default_candidates:
+        if default.is_file():
+            return default
+    return None
+
+
 @dataclass(slots=True)
 class ExportResult:
     """Outcome details for a rendering attempt."""
@@ -72,25 +106,26 @@ def _resolve_binary(
 ) -> Path | None:
     """Resolve a binary path using explicit, env, and PATH lookups."""
 
-    if preferred_path:
-        candidate = Path(preferred_path)
-        if candidate.is_file():
-            return candidate
-        if allow_missing_preferred:
-            return candidate
-    if env_var:
-        env_value = os.environ.get(env_var)
-        if env_value:
-            env_candidate = Path(env_value)
-            if env_candidate.is_file():
-                return env_candidate
+    preferred = _preferred_binary(
+        preferred_path,
+        allow_missing=allow_missing_preferred,
+    )
+    if preferred is not None:
+        return preferred
+
+    env_candidate = _env_binary(env_var)
+    if env_candidate is not None:
+        return env_candidate
+
     for name in fallback_names:
         located = shutil.which(name)
         if located:
             return Path(located)
-    for default in default_candidates or ():
-        if default.is_file():
-            return default
+
+    default_candidate = _first_existing(default_candidates)
+    if default_candidate is not None:
+        return default_candidate
+
     return None
 
 
