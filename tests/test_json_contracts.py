@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
+from jsonschema.exceptions import ValidationError
 
 from x_make_common_x.json_contracts import validate_payload, validate_schema
+
+ValidationErrorType = cast("type[Exception]", ValidationError)
 
 
 @pytest.fixture(scope="module")
@@ -31,5 +36,5 @@ def test_validate_payload_success(sample_schema: dict[str, object]) -> None:
 
 
 def test_validate_payload_raises_on_failure(sample_schema: dict[str, object]) -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationErrorType):
         validate_payload({"details": {}}, sample_schema)

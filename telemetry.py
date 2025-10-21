@@ -115,11 +115,9 @@ def emit_event(event: Mapping[str, JSONValue] | TelemetryEvent) -> None:
     """
 
     logger = get_logger("x_make.telemetry")
-    payload: Mapping[str, JSONValue]
-    if isinstance(event, TelemetryEvent):
-        payload = event.as_dict()
-    else:
-        payload = event
+    payload: Mapping[str, JSONValue] = (
+        event.as_dict() if isinstance(event, TelemetryEvent) else event
+    )
     logger.info("telemetry event: %s", payload)
 
 
