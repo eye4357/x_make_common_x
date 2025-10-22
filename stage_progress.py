@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
+import tempfile
 from collections.abc import Mapping, MutableMapping, Sequence
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -95,9 +98,20 @@ def _now() -> datetime:
 
 def _atomic_write(path: Path, payload: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
-    tmp_path.write_text(payload, encoding="utf-8")
-    tmp_path.replace(path)
+    # Use unique temp files to avoid rename collisions on Windows.
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=path.parent, prefix=f"{path.name}.", suffix=".tmp", delete=False
+    ) as tmp_file:
+        tmp_file.write(payload)
+        tmp_file.flush()
+        os.fsync(tmp_file.fileno())
+        tmp_path = Path(tmp_file.name)
+    try:
+        os.replace(tmp_path, path)
+    except OSError:
+        with suppress(OSError):
+            tmp_path.unlink()
+        raise
 
 
 def _sanitize_messages(messages: Sequence[str] | None) -> list[str]:

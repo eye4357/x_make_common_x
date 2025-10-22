@@ -1,20 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any, cast
-
 import pytest
 from jsonschema.exceptions import ValidationError
 
 from x_make_common_x.json_contracts import validate_payload, validate_schema
 
-pytest = cast("Any", pytest)
-fixture = cast("Callable[..., Any]", pytest.fixture)
-
-ValidationErrorType = cast("type[Exception]", ValidationError)
+ValidationErrorType: type[Exception] = ValidationError
 
 
-@fixture(scope="module")
+@pytest.fixture(scope="module")  # type: ignore[misc]
 def sample_schema() -> dict[str, object]:
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
