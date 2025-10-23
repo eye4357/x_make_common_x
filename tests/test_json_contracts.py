@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import typing
+from typing import TYPE_CHECKING, ParamSpec, TypeVar, cast
+
 import pytest
 from jsonschema.exceptions import ValidationError
 
@@ -7,8 +10,33 @@ from x_make_common_x.json_contracts import validate_payload, validate_schema
 
 ValidationErrorType: type[Exception] = ValidationError
 
+_P = ParamSpec("_P")
+_T = TypeVar("_T")
+if TYPE_CHECKING:
+    from collections.abc import Callable
+else:
+    Callable = typing.Callable
 
-@pytest.fixture(scope="module")  # type: ignore[misc]
+
+if TYPE_CHECKING:
+
+    def typed_fixture(
+        *_args: object, **_kwargs: object
+    ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]: ...
+
+else:
+
+    def typed_fixture(
+        *args: object, **kwargs: object
+    ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
+        def _decorate(func: Callable[_P, _T]) -> Callable[_P, _T]:
+            decorated = pytest.fixture(*args, **kwargs)(func)
+            return cast("Callable[_P, _T]", decorated)
+
+        return _decorate
+
+
+@typed_fixture(scope="module")
 def sample_schema() -> dict[str, object]:
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",

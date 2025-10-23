@@ -100,14 +100,19 @@ def _atomic_write(path: Path, payload: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     # Use unique temp files to avoid rename collisions on Windows.
     with tempfile.NamedTemporaryFile(
-        "w", encoding="utf-8", dir=path.parent, prefix=f"{path.name}.", suffix=".tmp", delete=False
+        "w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f"{path.name}.",
+        suffix=".tmp",
+        delete=False,
     ) as tmp_file:
         tmp_file.write(payload)
         tmp_file.flush()
         os.fsync(tmp_file.fileno())
         tmp_path = Path(tmp_file.name)
     try:
-        os.replace(tmp_path, path)
+        tmp_path.replace(path)
     except OSError:
         with suppress(OSError):
             tmp_path.unlink()

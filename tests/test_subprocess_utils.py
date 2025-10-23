@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 import typing
 from subprocess import CompletedProcess
-from typing import TYPE_CHECKING, ParamSpec, TypeVar, cast
+from typing import TYPE_CHECKING, ParamSpec, Protocol, TypeVar, cast
 
 import pytest
 
@@ -11,10 +11,18 @@ from x_make_common_x.x_subprocess_utils_x import run_command
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from _pytest.capture import CaptureFixture
 else:
     Callable = typing.Callable
+
+
+class _CapturedIO(Protocol):
+    out: str
+    err: str
+
+
+class CaptureFixture(Protocol):
+    def readouterr(self) -> _CapturedIO: ...
+
 
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
@@ -58,7 +66,7 @@ def fake_run(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
 
 def test_run_command_echoes_when_explicit_test_mode(
     monkeypatch: pytest.MonkeyPatch,
-    capsys: CaptureFixture[str],
+    capsys: CaptureFixture,
     fake_run: list[list[str]],
 ) -> None:
     monkeypatch.setenv("X_MAKE_TEST_MODE", "1")
@@ -82,7 +90,7 @@ def test_run_command_echoes_when_explicit_test_mode(
 
 def test_run_command_suppresses_echo_when_explicitly_disabled(
     monkeypatch: pytest.MonkeyPatch,
-    capsys: CaptureFixture[str],
+    capsys: CaptureFixture,
     fake_run: list[list[str]],
 ) -> None:
     monkeypatch.setenv("X_MAKE_TEST_MODE", "0")
