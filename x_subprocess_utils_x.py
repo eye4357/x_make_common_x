@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
-from typing import Iterable, Sequence  # noqa: UP035
+from typing import Iterable, Mapping, Sequence  # noqa: UP035
 
 from .x_logging_utils_x import log_debug, log_info
 
@@ -55,6 +55,7 @@ def run_command(
     args: Iterable[str],
     *,
     check: bool = True,
+    env: Mapping[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     argv = list(args)
     log_debug("Running command:", " ".join(argv))
@@ -67,6 +68,7 @@ def run_command(
         capture_output=True,
         text=True,
         check=False,
+        env=dict(env) if env is not None else None,
     )
     if check and completed.returncode != 0:
         raise CommandError(

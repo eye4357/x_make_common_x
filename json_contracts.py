@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import importlib
 from collections.abc import Mapping, MutableMapping
 from typing import Protocol, cast
-
-from jsonschema.validators import Draft202012Validator
 
 SchemaMapping = Mapping[str, object]
 MutableSchemaMapping = MutableMapping[str, object]
@@ -22,10 +21,20 @@ class _DraftValidator(Protocol):
     def validate(self, payload: object) -> None: ...
 
 
-_DRAFT_VALIDATOR: type[_DraftValidator] = cast(
-    "type[_DraftValidator]",
-    Draft202012Validator,
-)
+def _load_draft_validator() -> type[_DraftValidator]:
+    """Resolve the jsonschema Draft 2020-12 validator without requiring stubs."""
+
+    class _ValidatorsModule(Protocol):
+        Draft202012Validator: type[_DraftValidator]
+
+    validators_module = cast(
+        "_ValidatorsModule",
+        importlib.import_module("jsonschema.validators"),
+    )
+    return validators_module.Draft202012Validator
+
+
+_DRAFT_VALIDATOR: type[_DraftValidator] = _load_draft_validator()
 
 
 def validate_schema(schema: SchemaMapping | MutableSchemaMapping) -> None:
