@@ -145,7 +145,14 @@ def test_export_html_to_pdf_success_with_stub(tmp_path: Path) -> None:
     assert result.output_path == tmp_path / "report.pdf"
 
 
-def test_export_mermaid_to_svg_missing_binary(tmp_path: Path) -> None:
+def test_export_mermaid_to_svg_missing_binary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    shutil_module = cast("object", getattr(exporters_module, "shutil", None))
+    assert shutil_module is not None
+    monkeypatch.setenv("MMDC", str(tmp_path / "missing.cmd"))
+    monkeypatch.setattr(shutil_module, "which", _stub_which)
+
     result = export_mermaid_to_svg("graph TD; A-->B;", output_dir=tmp_path, stem="m")
 
     assert result.succeeded is False
