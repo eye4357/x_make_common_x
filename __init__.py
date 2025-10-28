@@ -46,7 +46,6 @@ from x_make_common_x.stage_progress import (
     StageProgressEntry,
     StageProgressWriter,
 )
-from x_make_common_x.telemetry import JSONValue, TelemetryEvent, emit_event, make_event
 from x_make_common_x.x_env_x import (
     ensure_workspace_on_syspath,
     get_env_bool,
@@ -65,7 +64,6 @@ __all__ = [
     "HttpClient",
     "HttpError",
     "HttpResponse",
-    "JSONValue",
     "JsonBoardState",
     "JsonCardRecord",
     "ProgressSnapshot",
@@ -74,11 +72,9 @@ __all__ = [
     "RepoProgressReporter",
     "StageProgressEntry",
     "StageProgressWriter",
-    "TelemetryEvent",
     "board_from_records",
     "create_progress_snapshot",
     "dump_board",
-    "emit_event",
     "ensure_reports_dir",
     "ensure_workspace_on_syspath",
     "export_graphviz_to_svg",
@@ -93,7 +89,6 @@ __all__ = [
     "log_debug",
     "log_error",
     "log_info",
-    "make_event",
     "run_command",
     "save_json_board",
     "validate_payload",
