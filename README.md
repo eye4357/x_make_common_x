@@ -34,18 +34,8 @@ Install in editable mode so sibling repos import the local build during developm
 ## JSON Board Primer
 Load a ledger with `load_json_board(Path("board.json"))`, manipulate cards through `JsonBoardState.add()` or `.update()`, then `save_json_board` to commit. No hidden binaries—just structured data you can replicate and ship through orchestrator pipelines.
 
-## System Linkage
-- [Changelog](./CHANGELOG.md)
-- [Road to 0.20.4 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.4/Road%20to%200.20.4%20Engineering%20Proposal.md)
-- [Road to 0.20.3 Engineering Proposal](../x_0_make_all_x/Change%20Control/0.20.3/Road%20to%200.20.3%20Engineering%20Proposal.md)
-
 ## Reconstitution Drill
 During the monthly rebuild I torch a spare machine, replay `LAB_FROM_SCRATCH.md`, reinstall this package, and rerun the exporter batteries. Any deviation—missing binaries, skewed metadata, failed tests—gets logged in Change Control and resolved before the orchestrator returns to service.
-
-## Cross-Referenced Assets
-- [x_0_make_all_x](../x_0_make_all_x/README.md) — orchestration core that imports these helpers on every run.
-- [x_make_github_visitor_x](../x_make_github_visitor_x/README.md) — compliance pipeline relying on the logging and validation layers.
-- [x_make_pypi_x](../x_make_pypi_x/README.md) — publisher that leans on the exporter and subprocess harnesses.
 
 ## Conduct Code
 When you touch a shared utility, document the change, update the changelog, and notify downstream projects through Change Control. A sloppy edit here multiplies into outages everywhere.
