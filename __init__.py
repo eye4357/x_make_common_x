@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+from x_make_common_x.detect import (
+    DEFAULT_EXCLUDE_DIRS as DETECT_DEFAULT_EXCLUDE_DIRS,
+)
+from x_make_common_x.detect import (
+    DEFAULT_NAME_PATTERNS as DETECT_DEFAULT_NAME_PATTERNS,
+)
+from x_make_common_x.detect import (
+    EntryPointCandidate,
+    EntryPointDiscovery,
+    scan_python_entrypoints,
+)
 from x_make_common_x.exporters import (  # re-export shared exporters
     CommandRunner,
     ExportResult,
@@ -26,6 +37,8 @@ from x_make_common_x.json_board import (
     save_board as save_json_board,
 )
 from x_make_common_x.json_contracts import validate_payload, validate_schema
+from x_make_common_x.ledger import LedgerEvent, LedgerWriter
+from x_make_common_x.ledger import append_event as ledger_append_event
 from x_make_common_x.progress_snapshot import (
     ProgressSnapshot,
     ProgressStage,
@@ -56,16 +69,22 @@ from x_make_common_x.x_logging_utils_x import get_logger, log_debug, log_error, 
 from x_make_common_x.x_subprocess_utils_x import CommandError, run_command
 
 __all__ = [
+    "DETECT_DEFAULT_EXCLUDE_DIRS",
+    "DETECT_DEFAULT_NAME_PATTERNS",
     "REPORTS_DIR_NAME",
     "TIMESTAMP_FILENAME_FORMAT",
     "CommandError",
     "CommandRunner",
+    "EntryPointCandidate",
+    "EntryPointDiscovery",
     "ExportResult",
     "HttpClient",
     "HttpError",
     "HttpResponse",
     "JsonBoardState",
     "JsonCardRecord",
+    "LedgerEvent",
+    "LedgerWriter",
     "ProgressSnapshot",
     "ProgressStage",
     "ProgressStatus",
@@ -84,6 +103,7 @@ __all__ = [
     "get_env_str",
     "get_logger",
     "isoformat_timestamp",
+    "ledger_append_event",
     "load_json_board",
     "load_progress_snapshot",
     "log_debug",
@@ -91,6 +111,7 @@ __all__ = [
     "log_info",
     "run_command",
     "save_json_board",
+    "scan_python_entrypoints",
     "validate_payload",
     "validate_schema",
     "write_progress_snapshot",

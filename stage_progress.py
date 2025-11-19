@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import tempfile
+import time
 from collections.abc import Mapping, MutableMapping, Sequence
 from contextlib import suppress
 from dataclasses import dataclass, field
@@ -111,12 +112,22 @@ def _atomic_write(path: Path, payload: str) -> None:
         tmp_file.flush()
         os.fsync(tmp_file.fileno())
         tmp_path = Path(tmp_file.name)
-    try:
-        tmp_path.replace(path)
-    except OSError:
-        with suppress(OSError):
-            tmp_path.unlink()
-        raise
+    for attempt in range(5):
+        try:
+            tmp_path.replace(path)
+            break
+        except PermissionError:
+            if attempt == 4:
+                with suppress(OSError):
+                    tmp_path.unlink()
+                raise
+            with suppress(OSError):
+                path.unlink()
+            time.sleep(0.25 * (attempt + 1))
+        except OSError:
+            with suppress(OSError):
+                tmp_path.unlink()
+            raise
 
 
 def _sanitize_messages(messages: Sequence[str] | None) -> list[str]:
