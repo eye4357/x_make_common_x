@@ -1,7 +1,6 @@
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-
 class RepoRecord:
     name: str
     full_name: str
@@ -24,7 +23,6 @@ class RepoRecord:
         *,
         allow_token_clone: bool,
     ) -> str: ...
-
 
 class XClsMakeGithubClonesX:
     ALLOW_TOKEN_CLONE_ENV: str
@@ -51,17 +49,12 @@ class XClsMakeGithubClonesX:
     def sync(self) -> int: ...
     def allow_token_clone(self) -> bool: ...
 
-
 def resolve_workspace_root(parameters: Mapping[str, object]) -> str: ...
-
 def synchronize_workspace(
     payload: Mapping[str, object],
     *,
     ctx: object | None = ...,
 ) -> dict[str, object]: ...
-
-
 def main_json(payload: Mapping[str, object]) -> dict[str, object]: ...
-
 
 x_cls_make_github_clones_x: type[XClsMakeGithubClonesX]

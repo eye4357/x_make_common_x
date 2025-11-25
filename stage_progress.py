@@ -34,6 +34,8 @@ _COMPLETION_STATUSES = {"completed", "attention", "blocked", "skipped"}
 _DETAIL_SCHEMA = "x_make.stage_progress.repo/1.0"
 _INDEX_SCHEMA = "x_make.stage_progress.index/1.0"
 _MESSAGE_LIMIT = 10
+_ATOMIC_WRITE_RETRY_LIMIT = 5
+_ATOMIC_WRITE_BACKOFF_SECONDS = 0.25
 
 
 @dataclass(slots=True)
@@ -112,18 +114,18 @@ def _atomic_write(path: Path, payload: str) -> None:
         tmp_file.flush()
         os.fsync(tmp_file.fileno())
         tmp_path = Path(tmp_file.name)
-    for attempt in range(5):
+    for attempt in range(_ATOMIC_WRITE_RETRY_LIMIT):
         try:
             tmp_path.replace(path)
             break
         except PermissionError:
-            if attempt == 4:
+            if attempt == _ATOMIC_WRITE_RETRY_LIMIT - 1:
                 with suppress(OSError):
                     tmp_path.unlink()
                 raise
             with suppress(OSError):
                 path.unlink()
-            time.sleep(0.25 * (attempt + 1))
+            time.sleep(_ATOMIC_WRITE_BACKOFF_SECONDS * (attempt + 1))
         except OSError:
             with suppress(OSError):
                 tmp_path.unlink()

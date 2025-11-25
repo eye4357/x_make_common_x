@@ -62,7 +62,7 @@ class _UiModule:
         *,
         columns: Sequence[Mapping[str, object]],
         rows: Sequence[Mapping[str, object]],
-        row_key: str | None = ...
+        row_key: str | None = ...,
     ) -> Table: ...
     def column(self) -> Column: ...
     def input(
@@ -73,7 +73,7 @@ class _UiModule:
         label: str,
         *,
         on_click: Callable[..., Any] | None = ...,
-        id: str | None = ...
+        id: str | None = ...,
     ) -> Button: ...
     def checkbox(self, label: str, value: bool = ...) -> Checkbox: ...
     def number(
@@ -97,7 +97,7 @@ class _UiModule:
         host: str = ...,
         port: int = ...,
         native: bool | None = ...,
-        reload: bool | None = ...
+        reload: bool | None = ...,
     ) -> None: ...
 
 ui: _UiModule

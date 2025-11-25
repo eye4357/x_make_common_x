@@ -6,7 +6,10 @@ import hashlib
 import re
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 DEFAULT_NAME_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"^run_[a-z0-9_]+\.py$", re.IGNORECASE),
@@ -65,10 +68,10 @@ def _iter_python_files(root: Path, *, exclude_dirs: frozenset[str]) -> Iterator[
     while stack:
         current = stack.pop()
         try:
-            entries = list(current.iterdir())
+            iterator = current.iterdir()
         except OSError:
             continue
-        for entry in entries:
+        for entry in iterator:
             name = entry.name
             if entry.is_dir():
                 if name in exclude_dirs or name.startswith("."):
@@ -123,7 +126,9 @@ def _import_hints(text: str) -> tuple[str, ...]:
     return tuple(sorted(set(hints)))
 
 
-def _name_based_reasons(path: Path, *, patterns: Sequence[re.Pattern[str]]) -> list[str]:
+def _name_based_reasons(
+    path: Path, *, patterns: Sequence[re.Pattern[str]]
+) -> list[str]:
     name = path.name
     reasons: list[str] = []
     for pattern in patterns:

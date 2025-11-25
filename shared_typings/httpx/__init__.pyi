@@ -55,7 +55,7 @@ class Request:
         url: str,
         *,
         headers: Mapping[str, str] | None = ...,
-    content: object = ...,
+        content: object = ...,
     ) -> None: ...
 
 class URL:

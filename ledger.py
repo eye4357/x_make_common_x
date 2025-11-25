@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
 
 
 @dataclass(slots=True, frozen=True)
@@ -17,9 +19,7 @@ class LedgerEvent:
 
     event_type: str
     payload: Mapping[str, Any]
-    emitted_at: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    emitted_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

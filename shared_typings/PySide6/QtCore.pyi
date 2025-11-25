@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 __all__ = [
     "QObject",
     "QPoint",
@@ -52,10 +51,8 @@ class _ItemDataRole:
     UserRole: int
     ToolTipRole: int
 
-
 class _ItemFlag:
     ItemIsEditable: int
-
 
 class _AlignmentFlag:
     AlignLeft: int
@@ -65,21 +62,17 @@ class _AlignmentFlag:
     AlignCenter: int
     AlignTop: int
 
-
 class _CheckState:
     Unchecked: int
     PartiallyChecked: int
     Checked: int
 
-
 class _Orientation:
     Horizontal: int
     Vertical: int
 
-
 class _ContextMenuPolicy:
     CustomContextMenu: int
-
 
 class _QtNamespace:
     AlignLeft: int
@@ -96,7 +89,6 @@ class _QtNamespace:
     Orientation: type[_Orientation]
     ContextMenuPolicy: type[_ContextMenuPolicy]
 
-
 class QTimer(QObject):
     timeout: Signal
 
@@ -104,9 +96,7 @@ class QTimer(QObject):
     def setInterval(self, msec: int) -> None: ...
     def start(self, msec: int | None = ...) -> None: ...
     def stop(self) -> None: ...
-
     @staticmethod
     def singleShot(msec: int, slot: object) -> None: ...
-
 
 Qt: _QtNamespace

@@ -15,7 +15,6 @@ class Session:
     headers: MutableMapping[str, str]
 
     def __init__(self) -> None: ...
-
     def request(
         self,
         method: str,
