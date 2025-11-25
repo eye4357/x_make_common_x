@@ -1,0 +1,9 @@
+def ensure_workspace_on_syspath() -> None: ...
+def get_env_str(name: str, *, default: str | None = ...) -> str | None: ...
+def get_env_bool(name: str, *, default: bool = ...) -> bool: ...
+
+__all__ = [
+    "ensure_workspace_on_syspath",
+    "get_env_bool",
+    "get_env_str",
+]

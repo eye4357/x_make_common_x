@@ -1,0 +1,13 @@
+import logging
+
+def get_logger(name: str = ...) -> logging.Logger: ...
+def log_debug(*parts: object) -> None: ...
+def log_error(*parts: object) -> None: ...
+def log_info(*parts: object) -> None: ...
+
+__all__ = [
+    "get_logger",
+    "log_debug",
+    "log_error",
+    "log_info",
+]
