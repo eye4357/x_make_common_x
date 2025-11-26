@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+from x_make_common_x.copilot_normalizer import (
+    DEFAULT_PERSONA_PROMPT,
+    PersonaPromptError,
+    extract_answer_text,
+    extract_highlights,
+    extract_tags,
+    format_persona_question,
+    score_from_answer,
+    source_from_response,
+    synopsis_from_answer,
+)
 from x_make_common_x.detect import (
     DEFAULT_EXCLUDE_DIRS as DETECT_DEFAULT_EXCLUDE_DIRS,
 )
@@ -39,6 +50,11 @@ from x_make_common_x.json_board import (
 from x_make_common_x.json_contracts import validate_payload, validate_schema
 from x_make_common_x.ledger import LedgerEvent, LedgerWriter
 from x_make_common_x.ledger import append_event as ledger_append_event
+from x_make_common_x.persona_vetting import (
+    PersonaEvidence,
+    PersonaVettingError,
+    PersonaVettingService,
+)
 from x_make_common_x.progress_snapshot import (
     ProgressSnapshot,
     ProgressStage,
@@ -69,6 +85,7 @@ from x_make_common_x.x_logging_utils_x import get_logger, log_debug, log_error, 
 from x_make_common_x.x_subprocess_utils_x import CommandError, run_command
 
 __all__ = [
+    "DEFAULT_PERSONA_PROMPT",
     "DETECT_DEFAULT_EXCLUDE_DIRS",
     "DETECT_DEFAULT_NAME_PATTERNS",
     "REPORTS_DIR_NAME",
@@ -85,6 +102,10 @@ __all__ = [
     "JsonCardRecord",
     "LedgerEvent",
     "LedgerWriter",
+    "PersonaEvidence",
+    "PersonaPromptError",
+    "PersonaVettingError",
+    "PersonaVettingService",
     "ProgressSnapshot",
     "ProgressStage",
     "ProgressStatus",
@@ -99,6 +120,10 @@ __all__ = [
     "export_graphviz_to_svg",
     "export_markdown_to_pdf",
     "export_mermaid_to_svg",
+    "extract_answer_text",
+    "extract_highlights",
+    "extract_tags",
+    "format_persona_question",
     "get_env_bool",
     "get_env_str",
     "get_logger",
@@ -112,6 +137,9 @@ __all__ = [
     "run_command",
     "save_json_board",
     "scan_python_entrypoints",
+    "score_from_answer",
+    "source_from_response",
+    "synopsis_from_answer",
     "validate_payload",
     "validate_schema",
     "write_progress_snapshot",

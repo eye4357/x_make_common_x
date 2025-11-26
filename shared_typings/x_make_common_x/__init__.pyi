@@ -13,6 +13,22 @@ from .run_reports import (
     isoformat_timestamp,
     write_run_report,
 )
+from .copilot_normalizer import (
+    DEFAULT_PERSONA_PROMPT,
+    PersonaPromptError,
+    extract_answer_text,
+    extract_highlights,
+    extract_tags,
+    format_persona_question,
+    score_from_answer,
+    source_from_response,
+    synopsis_from_answer,
+)
+from .persona_vetting import (
+    PersonaEvidence,
+    PersonaVettingError,
+    PersonaVettingService,
+)
 from .x_env_x import ensure_workspace_on_syspath, get_env_bool, get_env_str
 from .x_http_client_x import HttpClient, HttpError, HttpResponse
 from .x_logging_utils_x import get_logger, log_debug, log_error, log_info
@@ -24,9 +40,14 @@ __all__ = [
     "ExportResult",
     "REPORTS_DIR_NAME",
     "TIMESTAMP_FILENAME_FORMAT",
+    "DEFAULT_PERSONA_PROMPT",
     "HttpClient",
     "HttpError",
     "HttpResponse",
+    "PersonaEvidence",
+    "PersonaPromptError",
+    "PersonaVettingError",
+    "PersonaVettingService",
     "ensure_reports_dir",
     "ensure_workspace_on_syspath",
     "export_graphviz_to_svg",
@@ -42,4 +63,11 @@ __all__ = [
     "log_info",
     "write_run_report",
     "run_command",
+    "extract_answer_text",
+    "extract_highlights",
+    "extract_tags",
+    "format_persona_question",
+    "score_from_answer",
+    "source_from_response",
+    "synopsis_from_answer",
 ]

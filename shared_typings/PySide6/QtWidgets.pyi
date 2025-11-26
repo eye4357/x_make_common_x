@@ -10,10 +10,14 @@ __all__ = [
     "QApplication",
     "QCheckBox",
     "QComboBox",
+    "QGraphicsItem",
     "QDialog",
     "QDialogButtonBox",
     "QDoubleSpinBox",
     "QFormLayout",
+    "QFileDialog",
+    "QGridLayout",
+    "QGroupBox",
     "QHBoxLayout",
     "QInputDialog",
     "QLabel",
@@ -29,6 +33,7 @@ __all__ = [
     "QStackedWidget",
     "QGraphicsView",
     "QGraphicsScene",
+    "QScrollArea",
     "QSlider",
     "QSizePolicy",
     "QListWidget",
@@ -43,6 +48,11 @@ __all__ = [
     "QVBoxLayout",
     "QWidget",
 ]
+
+class QGraphicsItem(QObject):
+    def __init__(self, parent: QObject | None = ...) -> None: ...
+    def boundingRect(self) -> object: ...
+    def setToolTip(self, text: str) -> None: ...
 
 class QFont:
     def pointSize(self) -> int: ...
@@ -77,6 +87,25 @@ class QVBoxLayout(QLayout):
     def __init__(self, parent: QObject | None = ...) -> None: ...
     def setContentsMargins(
         self, left: int, top: int, right: int, bottom: int
+    ) -> None: ...
+
+class QGridLayout(QLayout):
+    def __init__(self, parent: QObject | None = ...) -> None: ...
+    def addWidget(
+        self,
+        widget: QWidget,
+        row: int,
+        column: int,
+        row_span: int = ...,
+        column_span: int = ...,
+    ) -> None: ...
+    def addLayout(
+        self,
+        layout: QLayout,
+        row: int,
+        column: int,
+        row_span: int = ...,
+        column_span: int = ...,
     ) -> None: ...
 
 class QSizePolicy:
@@ -121,6 +150,10 @@ class QWidget(QObject):
     def close(self) -> None: ...
     def closeEvent(self, event: object) -> None: ...
 
+class QGroupBox(QWidget):
+    def __init__(self, title: str = ..., parent: QWidget | None = ...) -> None: ...
+    def setLayout(self, layout: QLayout) -> None: ...
+
 class QApplication(QObject):
     def __init__(self, argv: Sequence[str]) -> None: ...
     @staticmethod
@@ -151,6 +184,28 @@ class QDialog(QWidget):
     def exec(self) -> int: ...
     def accept(self) -> None: ...
     def reject(self) -> None: ...
+
+class QFileDialog(QWidget):
+    @staticmethod
+    def getOpenFileName(
+        parent: QWidget | None = ...,
+        caption: str = ...,
+        directory: str = ...,
+        filter: str = ...,
+    ) -> tuple[str, str]: ...
+    @staticmethod
+    def getExistingDirectory(
+        parent: QWidget | None = ...,
+        caption: str = ...,
+        directory: str = ...,
+    ) -> str: ...
+    @staticmethod
+    def getSaveFileName(
+        parent: QWidget | None = ...,
+        caption: str = ...,
+        directory: str = ...,
+        filter: str = ...,
+    ) -> tuple[str, str]: ...
 
 class QDialogButtonBox(QWidget):
     class StandardButton(int):
@@ -313,6 +368,7 @@ class QGraphicsScene(QObject):
     def setSceneRect(self, rect: object) -> None: ...
     @overload
     def setSceneRect(self, x: float, y: float, width: float, height: float) -> None: ...
+    def sceneRect(self) -> object: ...
     def items(self) -> list[object]: ...
 
 class QGraphicsView(QWidget):
@@ -321,6 +377,8 @@ class QGraphicsView(QWidget):
     def setRenderHints(self, hints: int) -> None: ...
     def resetTransform(self) -> None: ...
     def scale(self, sx: float, sy: float) -> None: ...
+    def fitInView(self, target: object, mode: int | None = ...) -> None: ...
+    def sceneRect(self) -> object: ...
 
 class QSlider(QWidget):
     class Orientation(int):
@@ -339,6 +397,11 @@ class QStackedWidget(QWidget):
     def setCurrentIndex(self, index: int) -> None: ...
     def renderHints(self) -> int: ...
     def setRenderHints(self, hints: int) -> None: ...
+
+class QScrollArea(QWidget):
+    def __init__(self, parent: QWidget | None = ...) -> None: ...
+    def setWidget(self, widget: QWidget) -> None: ...
+    def setWidgetResizable(self, resizable: bool) -> None: ...
 
 class QAbstractItemView(QWidget):
     class SelectionMode:

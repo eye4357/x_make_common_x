@@ -1,3 +1,3 @@
-from . import QtCore, QtGui, QtWidgets
+from . import QtCore, QtGui, QtSvgWidgets, QtWidgets
 
-__all__ = ["QtCore", "QtGui", "QtWidgets"]
+__all__ = ["QtCore", "QtGui", "QtSvgWidgets", "QtWidgets"]

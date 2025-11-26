@@ -71,6 +71,11 @@ class _Orientation:
     Horizontal: int
     Vertical: int
 
+class _AspectRatioMode:
+    IgnoreAspectRatio: int
+    KeepAspectRatio: int
+    KeepAspectRatioByExpanding: int
+
 class _ContextMenuPolicy:
     CustomContextMenu: int
 
@@ -87,6 +92,7 @@ class _QtNamespace:
     AlignmentFlag: type[_AlignmentFlag]
     CheckState: type[_CheckState]
     Orientation: type[_Orientation]
+    AspectRatioMode: type[_AspectRatioMode]
     ContextMenuPolicy: type[_ContextMenuPolicy]
 
 class QTimer(QObject):

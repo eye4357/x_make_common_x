@@ -3,6 +3,7 @@ from __future__ import annotations
 __all__ = [
     "QColor",
     "QFont",
+    "QPainter",
     "QTextCursor",
 ]
 
@@ -11,6 +12,21 @@ class QColor:
 
 class QFont:
     def setUnderline(self, value: bool) -> None: ...
+
+class QPainter:
+    class RenderHint(int):
+        Antialiasing: "QPainter.RenderHint"
+
+    Antialiasing: int
+
+    def __init__(self, device: object | None = ...) -> None: ...
+    def begin(self, device: object) -> bool: ...
+    def end(self) -> None: ...
+    def setRenderHint(self, hint: int, on: bool = ...) -> None: ...
+    def setPen(self, pen: object) -> None: ...
+    def setBrush(self, brush: object) -> None: ...
+    def drawText(self, rect: object, flags: int, text: str) -> None: ...
+    def fillRect(self, rect: object, color: QColor | object) -> None: ...
 
 class QTextCursor:
     End: int

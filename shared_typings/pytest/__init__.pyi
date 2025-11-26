@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import ModuleType
 from typing import (
     Callable,
     Generic,
@@ -13,6 +14,7 @@ from typing import (
 
 __all__ = [
     "MonkeyPatch",
+    "CaptureFixture",
     "fixture",
     "importorskip",
     "mark",
@@ -46,6 +48,7 @@ class MonkeyPatch:
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 _E = TypeVar("_E", bound=BaseException)
+_AnyStr = TypeVar("_AnyStr", bound=str | bytes)
 
 class _MarkDecorator:
     def parametrize(
@@ -91,8 +94,15 @@ def raises(
     *,
     match: str | None = ...,
 ) -> _RaisesContext[_E]: ...
-def importorskip(module_name: str, *, reason: str | None = ...) -> object: ...
-def skip(reason: str | None = ...) -> NoReturn: ...
+class CaptureResult(Generic[_AnyStr]):
+    out: _AnyStr
+    err: _AnyStr
+
+class CaptureFixture(Generic[_AnyStr]):
+    def readouterr(self) -> CaptureResult[_AnyStr]: ...
+
+def importorskip(module_name: str, *, reason: str | None = ...) -> ModuleType: ...
+def skip(reason: str | None = ..., *, allow_module_level: bool = ...) -> NoReturn: ...
 def fixture(
     function: Callable[_P, _R] | None = None,
     *,
