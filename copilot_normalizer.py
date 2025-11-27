@@ -5,6 +5,13 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 
+_POSITIVE_TERMS = re.compile(
+    r"\b(excellent|strong|trusted|reliable|experienced)\b",
+)
+_NEGATIVE_TERMS = re.compile(
+    r"\b(risk|concern|fraud|unsafe|unknown)\b",
+)
+
 DEFAULT_PERSONA_PROMPT = (
     "You are reviewing the persona '{persona_id}'. "
     "Summarize their mission, highlight notable traits, add hashtags, and "
@@ -16,18 +23,24 @@ class PersonaPromptError(ValueError):
     """Raised when persona prompt templates cannot be rendered."""
 
 
-def format_persona_question(persona_id: str, template: str = DEFAULT_PERSONA_PROMPT) -> str:
+def format_persona_question(
+    persona_id: str,
+    template: str = DEFAULT_PERSONA_PROMPT,
+) -> str:
     """Format the persona prompt template, validating basic invariants."""
 
     normalized_id = persona_id.strip()
     if not normalized_id:
-        raise PersonaPromptError("Persona identifier must be a non-empty string.")
+        message = "Persona identifier must be a non-empty string."
+        raise PersonaPromptError(message)
     if "{persona_id}" not in template:
-        raise PersonaPromptError("Prompt template must include the '{persona_id}' placeholder.")
+        message = "Prompt template must include the '{persona_id}' placeholder."
+        raise PersonaPromptError(message)
     try:
         rendered = template.format(persona_id=normalized_id)
     except KeyError as exc:  # pragma: no cover - defensive guard
-        raise PersonaPromptError(f"Invalid prompt placeholder: {exc}") from exc
+        message = f"Invalid prompt placeholder: {exc}"
+        raise PersonaPromptError(message) from exc
     return rendered.strip()
 
 
@@ -51,7 +64,8 @@ def extract_tags(response: Mapping[str, object]) -> tuple[str, ...]:
     tags = response.get("tags")
     if isinstance(tags, Sequence) and not isinstance(tags, (str, bytes)):
         normalized = [str(tag).strip() for tag in tags if str(tag).strip()]
-        return tuple(dict.fromkeys(normalized))  # preserve order while removing duplicates
+        # Preserve insertion order while removing duplicates.
+        return tuple(dict.fromkeys(normalized))
 
     answer = extract_answer_text(response)
     if not answer:
@@ -89,8 +103,9 @@ def score_from_answer(answer: str) -> float:
     text = answer.strip()
     if not text:
         return 0.0
-    positive = len(re.findall(r"\b(excellent|strong|trusted|reliable|experienced)\b", text.lower()))
-    negative = len(re.findall(r"\b(risk|concern|fraud|unsafe|unknown)\b", text.lower()))
+    lowered = text.lower()
+    positive = len(_POSITIVE_TERMS.findall(lowered))
+    negative = len(_NEGATIVE_TERMS.findall(lowered))
     base = min(1.0, len(text) / 600.0)
     score = base + 0.05 * positive - 0.05 * negative
     return max(0.0, min(1.0, score))

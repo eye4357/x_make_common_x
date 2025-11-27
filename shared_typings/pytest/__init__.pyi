@@ -94,6 +94,7 @@ def raises(
     *,
     match: str | None = ...,
 ) -> _RaisesContext[_E]: ...
+
 class CaptureResult(Generic[_AnyStr]):
     out: _AnyStr
     err: _AnyStr

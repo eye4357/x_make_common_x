@@ -91,6 +91,14 @@ class QVBoxLayout(QLayout):
 
 class QGridLayout(QLayout):
     def __init__(self, parent: QObject | None = ...) -> None: ...
+    @overload
+    def addWidget(
+        self,
+        widget: QWidget,
+        stretch: int = ...,
+        alignment: int = ...,
+    ) -> None: ...
+    @overload
     def addWidget(
         self,
         widget: QWidget,
@@ -98,7 +106,14 @@ class QGridLayout(QLayout):
         column: int,
         row_span: int = ...,
         column_span: int = ...,
+        alignment: int = ...,
     ) -> None: ...
+    @overload
+    def addLayout(
+        self,
+        layout: QLayout,
+    ) -> None: ...
+    @overload
     def addLayout(
         self,
         layout: QLayout,
@@ -106,6 +121,7 @@ class QGridLayout(QLayout):
         column: int,
         row_span: int = ...,
         column_span: int = ...,
+        alignment: int = ...,
     ) -> None: ...
 
 class QSizePolicy:

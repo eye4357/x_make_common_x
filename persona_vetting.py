@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 
 @dataclass(frozen=True)
@@ -26,10 +29,14 @@ class PersonaVettingError(RuntimeError):
 class PersonaVettingService:
     """Abstract interface implemented by persona vetting adapters."""
 
-    def lookup(self, persona_id: str) -> PersonaEvidence:  # pragma: no cover - interface stub
-        raise NotImplementedError("PersonaVettingService.lookup must be implemented by subclasses")
+    def lookup(
+        self,
+        persona_id: str,
+    ) -> PersonaEvidence:  # pragma: no cover - interface stub
+        message = "PersonaVettingService.lookup must be implemented by subclasses"
+        raise NotImplementedError(message)
 
-    def build_result(
+    def build_result(  # noqa: PLR0913
         self,
         persona_id: str,
         *,
@@ -40,7 +47,7 @@ class PersonaVettingService:
         tags: Sequence[str] | Iterable[str] = (),
         reasons: Sequence[str] | Iterable[str] = (),
     ) -> PersonaEvidence:
-        """Helper for subclasses to emit PersonaEvidence objects with normalized tuples."""
+        """Help adapters emit PersonaEvidence objects with normalized tuples."""
 
         normalized_tags = tuple(str(tag) for tag in tags)
         normalized_reasons = tuple(str(reason) for reason in reasons)

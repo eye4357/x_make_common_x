@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
     from pathlib import Path
 
 DEFAULT_NAME_PATTERNS: tuple[re.Pattern[str], ...] = (
@@ -130,10 +130,9 @@ def _name_based_reasons(
     path: Path, *, patterns: Sequence[re.Pattern[str]]
 ) -> list[str]:
     name = path.name
-    reasons: list[str] = []
-    for pattern in patterns:
-        if pattern.match(name):
-            reasons.append(f"name matches {pattern.pattern}")
+    reasons = [
+        f"name matches {pattern.pattern}" for pattern in patterns if pattern.match(name)
+    ]
     if path.stem.endswith("_runner"):
         reasons.append("name ends with _runner")
     if "run" in path.stem:
