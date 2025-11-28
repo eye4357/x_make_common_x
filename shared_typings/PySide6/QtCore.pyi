@@ -3,6 +3,7 @@ from __future__ import annotations
 __all__ = [
     "QObject",
     "QPoint",
+    "QSize",
     "QRunnable",
     "QThread",
     "QThreadPool",
@@ -25,6 +26,11 @@ class QPoint:
     def __init__(self, x: int = ..., y: int = ...) -> None: ...
     def x(self) -> int: ...
     def y(self) -> int: ...
+
+class QSize:
+    def __init__(self, width: int = ..., height: int = ...) -> None: ...
+    def width(self) -> int: ...
+    def height(self) -> int: ...
 
 class QThread(QObject):
     finished: Signal
@@ -76,6 +82,10 @@ class _AspectRatioMode:
     KeepAspectRatio: int
     KeepAspectRatioByExpanding: int
 
+class _TransformationMode:
+    FastTransformation: int
+    SmoothTransformation: int
+
 class _ContextMenuPolicy:
     CustomContextMenu: int
 
@@ -93,6 +103,7 @@ class _QtNamespace:
     CheckState: type[_CheckState]
     Orientation: type[_Orientation]
     AspectRatioMode: type[_AspectRatioMode]
+    TransformationMode: type[_TransformationMode]
     ContextMenuPolicy: type[_ContextMenuPolicy]
 
 class QTimer(QObject):

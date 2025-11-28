@@ -4,6 +4,7 @@ __all__ = [
     "QColor",
     "QFont",
     "QPainter",
+    "QPixmap",
     "QTextCursor",
 ]
 
@@ -27,6 +28,17 @@ class QPainter:
     def setBrush(self, brush: object) -> None: ...
     def drawText(self, rect: object, flags: int, text: str) -> None: ...
     def fillRect(self, rect: object, color: QColor | object) -> None: ...
+
+class QPixmap:
+    def __init__(self, path: str | None = ...) -> None: ...
+    def isNull(self) -> bool: ...
+    def scaled(
+        self,
+        width_or_size: int | float | object,
+        height: int | None = ...,
+        aspectMode: int | None = ...,
+        transformMode: int | None = ...,
+    ) -> "QPixmap": ...
 
 class QTextCursor:
     End: int
